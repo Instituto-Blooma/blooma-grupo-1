@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  getAllowedHosts,
   getLocalDashboardReadyUrl,
   isLocalDashboardReady,
   readLocalDashboardPort,
@@ -75,5 +76,17 @@ describe('local dashboard readiness', () => {
     expect(getLocalDashboardReadyUrl({ dashboardConfigPath: '/no/such/dashboard.json' })).toBe(
       'http://127.0.0.1:6790/api/current_deployment'
     );
+  });
+});
+
+describe('getAllowedHosts', () => {
+  it('always allows Railway hosts so vite preview can serve production', () => {
+    expect(getAllowedHosts({})).toEqual(['.railway.app']);
+  });
+
+  it('includes the Railway public domain when set', () => {
+    expect(
+      getAllowedHosts({ RAILWAY_PUBLIC_DOMAIN: 'hackblooma-production.up.railway.app' })
+    ).toEqual(['hackblooma-production.up.railway.app', '.railway.app']);
   });
 });

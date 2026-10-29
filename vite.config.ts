@@ -281,6 +281,7 @@ export default defineConfig({
     host: '0.0.0.0',
     port: devServerPort,
     strictPort: Boolean(process.env.PORT),
+    allowedHosts,
     proxy: emulateProxy,
   },
 });
