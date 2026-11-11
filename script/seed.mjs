@@ -41,11 +41,11 @@ export function resetE2eFixtures({ anchorDate } = {}) {
 
   configureE2eConvexEnv();
 
-  runConvex(`npx convex run testing/e2e:seedAdminUser '{"name":"Dev User"}' --push`, {
+  runConvex(`npx convex run testing/e2e:seedAdminUser "{\\"name\\":\\"Dev User\\"}" --push`, {
     logLabel: 'Seeding admin user...',
   });
 
-  const contextJson = runConvex(`npx convex run testing/e2e:reset '{}' --push`, {
+  const contextJson = runConvex(`npx convex run testing/e2e:reset "{}" --push`, {
     logLabel: 'Resetting E2E fixtures...',
   });
 
@@ -70,8 +70,11 @@ export function readAnchorDateFromContext() {
 
 export function seedDevFixtures() {
   requireEnvLocal();
-  runConvex(`npx convex run testing/e2e:seedAdminUser '{"name":"Dev User"}'`, {
+  runConvex(`npx convex run testing/e2e:seedAdminUser "{\\"name\\":\\"Dev User\\"}"`, {
     logLabel: 'Seeding dev admin user...',
+  });
+  runConvex(`npx convex run demo:seedHospitals "{}"`, {
+    logLabel: 'Seeding demo hospitals (sectors, beds, medication requests)...',
   });
 }
 
