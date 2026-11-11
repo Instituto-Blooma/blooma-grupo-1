@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>Instituto Blooma</title>
+    <title>MedBridge</title>
     <meta
       name="description"
-      content="Instituto Blooma connects girls who love STEM with the support they need to shape the future."
+      content="MedBridge: solicitação de medicamentos entre enfermagem e farmácia clínica."
     />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -19,5 +19,17 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- VLibras: tradução do conteúdo do site para Libras (widget oficial do governo federal) -->
+    <div vw class="enabled">
+      <div vw-access-button class="active"></div>
+      <div vw-plugin-wrapper>
+        <div class="vw-plugin-top-wrapper"></div>
+      </div>
+    </div>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <script>
+      new window.VLibras.Widget('https://vlibras.gov.br/app');
+    </script>
   </body>
 </html>

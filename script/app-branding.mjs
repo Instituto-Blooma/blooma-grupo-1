@@ -79,7 +79,7 @@ export function resolvePrNumberSync(env = process.env) {
 export function getBaseTitlePrefix(appEnv) {
   if (appEnv === 'staging') return 'Staging';
   if (appEnv === 'development') return 'Dev';
-  return 'Instituto Blooma';
+  return 'MedBridge';
 }
 
 /**

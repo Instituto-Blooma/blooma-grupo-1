@@ -476,7 +476,7 @@ export async function waitForConvexBackendPort(maxAttempts = 60) {
 export async function waitForConvexFunction(functionPath, maxAttempts = 60) {
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
-      execSync(`npx convex run ${functionPath} '{}'`, {
+      execSync(`npx convex run ${functionPath} "{}"`, {
         encoding: 'utf8',
         stdio: ['ignore', 'pipe', 'pipe'],
       });

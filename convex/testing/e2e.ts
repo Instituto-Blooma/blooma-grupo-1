@@ -71,7 +71,7 @@ async function resetInviteeUser(
   return user;
 }
 
-async function seedOrgMember(
+export async function seedOrgMember(
   ctx: MutationCtx,
   platformUserId: Id<'users'>,
   organizationId: string,
@@ -162,7 +162,7 @@ async function seedOrgTodos(
   return { todoAlphaId, todoBetaId };
 }
 
-async function ensureOrganization(
+export async function ensureOrganization(
   ctx: MutationCtx,
   platformUserId: Id<'users'>,
   name: string,

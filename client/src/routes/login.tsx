@@ -20,7 +20,7 @@ function LoginPage() {
       <div className="relative z-10 w-full space-y-6">
         <AuthForm />
         <p className="text-center font-serif text-sm text-muted-foreground">
-          Meninas fazendo o futuro
+          Solicitação de medicamentos entre enfermagem e farmácia
         </p>
       </div>
     </div>

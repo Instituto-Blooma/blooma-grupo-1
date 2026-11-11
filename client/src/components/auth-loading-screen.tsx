@@ -1,4 +1,4 @@
-import { BloomaWordmark } from '@/components/blooma-brand';
+import { MedBridgeWordmark } from '@/components/medbridge-brand';
 
 export function AuthLoadingScreen() {
   return (
@@ -7,7 +7,7 @@ export function AuthLoadingScreen() {
       data-testid="auth-loading"
       aria-busy="true"
     >
-      <BloomaWordmark compact />
+      <MedBridgeWordmark compact />
     </div>
   );
 }

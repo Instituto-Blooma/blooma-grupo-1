@@ -1,5 +1,5 @@
 import { execSync, spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -144,11 +144,11 @@ async function waitForE2eReady() {
 
 async function startStackServices() {
   clearPidFile();
-  execSync(`mkdir -p "${E2E_STACK_LOG_DIR}"`, { stdio: 'inherit' });
+  mkdirSync(E2E_STACK_LOG_DIR, { recursive: true });
 
   injectE2eEnv();
   process.env.CONVEX_TMPDIR = join(homedir(), '.cache/convex/tmp');
-  execSync(`mkdir -p "${process.env.CONVEX_TMPDIR}"`, { stdio: 'inherit' });
+  mkdirSync(process.env.CONVEX_TMPDIR, { recursive: true });
 
   log('e2e-stack', `Starting local Convex (log: ${E2E_STACK_LOG_DIR}/convex.log)...`);
   const convexChild = spawnPnpmDetached('dev:backend', {

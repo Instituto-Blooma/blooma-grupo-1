@@ -57,6 +57,54 @@ const schema = defineSchema({
   })
     .index('by_documentId', ['documentId'])
     .index('by_org_and_document', ['organizationId', 'documentId']),
+
+  // Hospital (organization) sectors, e.g. "UTI", "Enfermaria".
+  sectors: defineTable({
+    organizationId: v.string(),
+    name: v.string(),
+    sortOrder: v.number(),
+  }).index('by_org_and_sortOrder', ['organizationId', 'sortOrder']),
+
+  // Beds belong to one sector of one hospital, e.g. "Leito 03".
+  beds: defineTable({
+    organizationId: v.string(),
+    sectorId: v.id('sectors'),
+    label: v.string(),
+    sortOrder: v.number(),
+  }).index('by_org_and_sector_and_sortOrder', ['organizationId', 'sectorId', 'sortOrder']),
+
+  medicationRequests: defineTable({
+    organizationId: v.string(),
+    sectorId: v.id('sectors'),
+    bedId: v.id('beds'),
+    medication: v.string(),
+    quantity: v.number(),
+    dose: v.string(),
+    route: v.string(),
+    urgency: v.union(v.literal('urgente'), v.literal('prioritario'), v.literal('rotina')),
+    // 0 = urgente, 1 = prioritario, 2 = rotina; drives the pharmacy queue order.
+    urgencyRank: v.number(),
+    notes: v.optional(v.string()),
+    // Optional "data e horário limite" set by nursing (ms since epoch).
+    deadline: v.optional(v.number()),
+    status: v.union(
+      v.literal('solicitado'),
+      v.literal('em_separacao'),
+      v.literal('enviado'),
+      v.literal('recebido'),
+      v.literal('recusado')
+    ),
+    refusalReason: v.optional(v.string()),
+    createdBy: v.id('users'),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    separationStartedAt: v.optional(v.number()),
+    sentAt: v.optional(v.number()),
+    receivedAt: v.optional(v.number()),
+    refusedAt: v.optional(v.number()),
+  })
+    .index('by_org_and_urgencyRank', ['organizationId', 'urgencyRank'])
+    .index('by_org_and_bed', ['organizationId', 'bedId']),
 });
 
 export default schema;
