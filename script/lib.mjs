@@ -64,8 +64,12 @@ export function spawnShellBackground(
   shellCommand,
   { logFile, env = process.env, cwd = ROOT_DIR, detach = false } = {}
 ) {
+  // `exec` is a POSIX shell builtin; cmd.exe has no equivalent, so Windows just redirects.
+  const execPrefix = process.platform === 'win32' ? '' : 'exec ';
   const command =
-    detach && logFile ? `exec ${shellCommand} >> ${JSON.stringify(logFile)} 2>&1` : shellCommand;
+    detach && logFile
+      ? `${execPrefix}${shellCommand} >> ${JSON.stringify(logFile)} 2>&1`
+      : shellCommand;
 
   const child = spawn(command, {
     cwd,
@@ -86,6 +90,20 @@ export function spawnShellBackground(
   return child;
 }
 
+function resolvePnpmJsEntry() {
+  const candidates = [
+    process.env.npm_execpath,
+    join(dirname(process.execPath), 'node_modules', 'corepack', 'dist', 'pnpm.js'),
+  ];
+  const entry = candidates.find(
+    (candidate) => candidate && /pnpm[^\\/]*\.c?js$/i.test(candidate) && existsSync(candidate)
+  );
+  if (!entry) {
+    throw new Error('Could not locate pnpm JS entry; run `corepack enable` and retry.');
+  }
+  return entry;
+}
+
 /** Detached pnpm run for E2E stack — parent can exit; child survives without a shell wrapper. */
 export function spawnPnpmDetached(scriptName, { logFile, env = process.env, cwd = ROOT_DIR } = {}) {
   if (!logFile) {
@@ -93,11 +111,18 @@ export function spawnPnpmDetached(scriptName, { logFile, env = process.env, cwd 
   }
   mkdirSync(dirname(logFile), { recursive: true });
   const logFd = openSync(logFile, 'a');
-  const child = spawn('pnpm', ['run', scriptName], {
+  // Windows cannot spawn pnpm.cmd without a shell, and a detached cmd.exe drops the log
+  // handles (the child then dies on its first write). Run pnpm's JS entry with node instead.
+  const pnpmJs = process.platform === 'win32' ? resolvePnpmJsEntry() : null;
+  const [command, args] = pnpmJs
+    ? [process.execPath, [pnpmJs, 'run', scriptName]]
+    : ['pnpm', ['run', scriptName]];
+  const child = spawn(command, args, {
     cwd,
     env,
     detached: true,
     stdio: ['ignore', logFd, logFd],
+    windowsHide: true,
   });
   closeSync(logFd);
   child.unref();
@@ -134,6 +159,22 @@ export async function killPidsFromFile(pidFile = E2E_STACK_CHILDREN_FILE) {
 
   const selfPid = process.pid;
   const parentPid = process.ppid;
+
+  if (process.platform === 'win32') {
+    // process.kill only ends the cmd.exe wrapper on Windows; taskkill /T ends its whole tree.
+    for (const pid of pids) {
+      if (pid === selfPid || pid === parentPid) {
+        continue;
+      }
+      try {
+        execSync(`taskkill /PID ${pid} /T /F`, { stdio: 'ignore' });
+      } catch {
+        // already gone
+      }
+    }
+    rmSync(pidFile, { force: true });
+    return;
+  }
 
   for (const pid of pids) {
     if (pid === selfPid || pid === parentPid) {

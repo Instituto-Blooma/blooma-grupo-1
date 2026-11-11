@@ -1,5 +1,5 @@
 import { execSync } from 'node:child_process';
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -52,7 +52,7 @@ function needsPrBootstrap() {
 
 function prepareWorkspace(tag) {
   process.env.CONVEX_TMPDIR = join(homedir(), '.cache/convex/tmp');
-  execSync(`mkdir -p "${process.env.CONVEX_TMPDIR}"`, { stdio: 'inherit' });
+  mkdirSync(process.env.CONVEX_TMPDIR, { recursive: true });
 
   if (process.env.RESET_CONVEX_DASHBOARD_CACHE === '1') {
     log(tag, 'Clearing Convex dashboard cache...');

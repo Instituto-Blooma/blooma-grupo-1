@@ -6,6 +6,7 @@ import {
   realpathSync,
   rmSync,
   writeFileSync,
+  mkdirSync,
 } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { delimiter, join } from 'node:path';
@@ -239,7 +240,7 @@ async function runDev() {
   }
 
   process.env.CONVEX_TMPDIR = join(homedir(), '.cache/convex/tmp');
-  execSync(`mkdir -p "${process.env.CONVEX_TMPDIR}"`, { stdio: 'inherit' });
+  mkdirSync(process.env.CONVEX_TMPDIR, { recursive: true });
 
   await cleanupStaleDevPorts();
 
@@ -601,7 +602,7 @@ async function runRailway(subcommand) {
       log('railway-pr', 'Local Convex — codegen only');
       ensureConvexCodegenAuthEnv();
       const convexTmpDir = join(homedir(), '.cache/convex/tmp');
-      execSync(`mkdir -p "${convexTmpDir}"`, { stdio: 'inherit' });
+      mkdirSync(convexTmpDir, { recursive: true });
       const convexBuildEnv = {
         ...process.env,
         CI: 'true',
