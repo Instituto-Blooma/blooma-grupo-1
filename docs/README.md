@@ -12,7 +12,7 @@ Guides for forked B2B startups using this template. Domain vocabulary in [AGENTS
 | [environment.md](./environment.md)                 | Ops, developers        | Convex and Vite env vars, emulators, production                        |
 | [customization.md](./customization.md)             | Fork owners            | Checklist after remixing the template                                  |
 | [updating-downstream.md](./updating-downstream.md) | Fork owners, AI agents | Port template changes into downstream apps; `.convexplate-last-commit` |
-| [testing.md](./testing.md)                         | CI, developers         | E2E setup and when to run tests                                        |
+| [testing.md](./testing.md)                         | Everyone               | Do not add unit, Cypress, or end-to-end tests                          |
 
 ## For AI assistants
 
@@ -36,4 +36,3 @@ Guides for forked B2B startups using this template. Domain vocabulary in [AGENTS
 
 - [SETUP.md](../SETUP.md) — first-run local and Railway setup
 - [convex/README.md](../convex/README.md) — where to add Convex functions
-- [cypress/README.md](../cypress/README.md) — Cypress personas and specs

@@ -43,7 +43,7 @@ convex/
 ├── emails.ts            # Resend send (prod + emulate)
 ├── users.ts             # User profile helpers
 ├── schema.ts            # users.onboardingStatus, todos, impersonationSessions
-├── testing/e2e.ts       # E2E seed reset (dev only)
+├── testing/e2e.ts       # Local dev user seed (not a test suite)
 └── lib/
     ├── auth.ts          # Platform admin allowlist + role checks
     ├── onboarding.ts  # Lifecycle: pending / invited / active

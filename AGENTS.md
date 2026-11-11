@@ -94,13 +94,14 @@ Read [docs/adr/](./docs/adr/) before changing tenancy, onboarding, or platform a
 | [docs/architecture.md](./docs/architecture.md)               | Modules, routes, auth model                                        |
 | [docs/updating-downstream.md](./docs/updating-downstream.md) | Port this template into forks; maintain `.convexplate-last-commit` |
 | [docs/adr/](./docs/adr/)                                     | Architectural decisions                                            |
-| [cypress/README.md](./cypress/README.md)                     | E2E test harness                                                   |
+| [docs/testing.md](./docs/testing.md)                         | Why tests are not advised here                                     |
 
 Bundled agent skills live in [`.agents/skills/`](./.agents/skills/) (grill-with-docs, tdd, triage, diagnose, shadcn, etc.). Claude Code loads the same skills from [`.claude/skills/`](./.claude/skills/) (per-skill symlinks).
 
 ## Conventions for agents
 
 - Prefer extending existing `convex/lib/*` helpers over duplicating provisioning or auth logic.
+- **Tests**: do not add unit, Cypress, or end-to-end tests. Creating tests in this repository is not advised. See [docs/testing.md](./docs/testing.md).
 - Read ADRs before changing tenancy, onboarding, or platform admin behavior.
 - **UI / shadcn**: read [docs/frontend.md](./docs/frontend.md) and the [shadcn skill](./.agents/skills/shadcn/SKILL.md) before UI work. Use `@/components/ui/*` primitives, sonner for toast, TanStack Form + shared Zod schemas for forms. Do not edit the vendored shadcn skill — update the bridge doc instead.
 - **Updating a fork from this template**: use the [update-downstream skill](./.agents/skills/update-downstream/SKILL.md) and [docs/updating-downstream.md](./docs/updating-downstream.md). Read the downstream `.convexplate-last-commit` as the baseline, port changes surgically, then write that file with the applied convexplate commit hash.

@@ -26,5 +26,5 @@
     }
   },
   "include": ["client/src/**/*", "convex/**/*"],
-  "exclude": ["node_modules", "dist", ".convex", "convex/_generated", "app", "cypress"]
+  "exclude": ["node_modules", "dist", ".convex", "convex/_generated", "app"]
 }

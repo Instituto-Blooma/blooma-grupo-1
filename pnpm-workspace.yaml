@@ -7,7 +7,6 @@ allowBuilds:
   bufferutil: true
   '@parcel/watcher': true
   protobufjs: true
-  cypress: true
   core-js: false
   core-js-pure: false
 

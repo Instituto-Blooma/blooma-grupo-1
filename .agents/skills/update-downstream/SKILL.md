@@ -65,7 +65,7 @@ Classify each delta:
 | Shared `convex/lib/*`, authz/tenancy patterns                | Product schema, domain tables, business mutations |
 | Platform admin / onboarding / invitations                    | Product routes, pages, copy                       |
 | Form kit / UI primitives / frontend conventions              | `CONTEXT.md`, product ADRs, triage docs           |
-| Setup scripts, env docs, shared e2e harness                  | Downstream-only packages/integrations             |
+| Setup scripts and env docs                                   | Downstream-only packages and integrations         |
 | Template ADRs that still apply (renumber if ADR ids collide) | Renamed vocabulary / fork customization           |
 
 When unsure: small surgical patch > wholesale file replace.
@@ -98,10 +98,9 @@ In the downstream repo:
 ```bash
 pnpm install
 pnpm run check   # or typecheck:all + lint if check is heavy
-pnpm test        # at least tests covering ported areas
 ```
 
-Fix failures **caused by the port**. Do not rewrite unrelated pre-existing product test debt unless the user asks.
+Fix failures **caused by the port**. Do not add tests; see [docs/testing.md](../../../docs/testing.md).
 
 ### 8. Marker (required)
 

@@ -51,8 +51,8 @@ Details: [environment.md](./environment.md), [SETUP.md](../SETUP.md) production 
 | -------------- | ----------------------------------- | ------------------------------------------------- |
 | Todos demo     | `convex/todos.ts`, dashboard        | Replace with your first org-scoped feature        |
 | Dev routes     | `/dev/*` in `client/src/routes/`    | Remove or gate behind your own flag               |
-| E2E seed orgs  | `convex/testing/e2e.ts`             | Rename `E2E Acme Corp` etc. to your fixture names |
-| Example emails | `emulate.config.yaml`, e2e personas | Align with your domain                            |
+| Local seed users | `convex/testing/e2e.ts`          | Dev-only seed. Do not turn this into a test suite |
+| Example emails   | `emulate.config.yaml`            | Align with your domain                            |
 
 Keep the **pattern**: `organizationId` on tables + authz checks in `convex/todos.ts`.
 

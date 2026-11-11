@@ -26,8 +26,6 @@ app/routeTree.gen.ts
 !.env.example
 .setup-done
 .setup-lock/
-.e2e-stack-children.pids
-.e2e-stack-logs/
 
 # Claude Code may write internals next to project skills
 .claude/skills/.system/
@@ -57,10 +55,6 @@ yarn-error.log*
 # Testing
 coverage/
 .nyc_output/
-cypress/videos/
-cypress/screenshots/
-cypress/downloads/
-cypress/fixtures/e2e-context.json
 
 # Misc
 .cache/

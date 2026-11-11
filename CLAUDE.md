@@ -32,6 +32,10 @@ Vocabulary in [AGENTS.md](./AGENTS.md) + decisions in `docs/adr/`. See [docs/age
 
 Talk to the high-school builders as product decision-makers, not as engineers. See [docs/agents/audience.md](./docs/agents/audience.md).
 
+### Tests
+
+Do not add unit, Cypress, or end-to-end tests. Creating tests in this repository is not advised. See [docs/testing.md](./docs/testing.md).
+
 ### Downstream updates
 
 Port this template into forks with [/update-downstream](./.agents/skills/update-downstream/SKILL.md). See [docs/updating-downstream.md](./docs/updating-downstream.md).

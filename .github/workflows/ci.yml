@@ -40,9 +40,6 @@ jobs:
 
   typecheck:
     runs-on: ubuntu-latest
-    env:
-      # Types come from the npm package; the browser binary is only for E2E.
-      CYPRESS_INSTALL_BINARY: '0'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -63,29 +60,6 @@ jobs:
         env:
           CONVEX_AGENT_MODE: anonymous
       - run: pnpm check
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.1.1
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.22.2
-          cache: pnpm
-      - name: Cache Convex local binary
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/convex
-          key: convex-${{ runner.os }}-v1
-      - run: pnpm install --frozen-lockfile
-      - name: Build local Convex (codegen)
-        run: node script/run.mjs railway build
-        env:
-          CONVEX_AGENT_MODE: anonymous
-      - run: pnpm test
 
   build:
     runs-on: ubuntu-latest

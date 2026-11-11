@@ -12,7 +12,6 @@ Built on Vite, React, TypeScript, and Convex — with local dev, GitHub CI, and 
 - Google OAuth (emulated in dev; real provider in production)
 - Reference org-scoped feature: todos with ABAC pattern
 - Platform admin UI at `/admin`; org settings at `/settings/*`
-- Cypress e2e suite with personas and multi-organization fixtures
 - Agent skills in `.agents/skills/` (Claude Code: `.claude/skills/`)
 - Demo mode before Convex is configured; Tailwind + shadcn/ui; lint/format/typecheck
 
@@ -41,9 +40,7 @@ Detailed walkthrough: [SETUP.md](./SETUP.md).
 | `pnpm run dev`                   | Vite only                                             |
 | `pnpm run build`                 | Convex codegen + production frontend build            |
 | `pnpm run deploy:convex`         | Deploy Convex functions (Railway pre-deploy)          |
-| `pnpm run check`                 | Format, lint, and typecheck (client, Convex, Cypress) |
-| `pnpm run e2e:run`               | Start E2E stack, run Cypress headless                 |
-| `pnpm run e2e:open`              | Seed fixtures + Cypress UI                            |
+| `pnpm run check`                 | Format, lint, and typecheck                           |
 
 ## Deploy (Railway)
 
@@ -57,5 +54,5 @@ See [railway.toml](./railway.toml) and [docs/environment.md](./docs/environment.
 - [SETUP.md](./SETUP.md) — first-run setup
 - [docs/architecture.md](./docs/architecture.md) — tenancy, authz, onboarding
 - [docs/updating-downstream.md](./docs/updating-downstream.md) — port template changes into forks
-- [docs/testing.md](./docs/testing.md) — Cypress and E2E auth
+- [docs/testing.md](./docs/testing.md) — why tests are not advised
 - [docs/environment.md](./docs/environment.md) — env vars and Railway

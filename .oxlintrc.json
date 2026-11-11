@@ -55,12 +55,6 @@
   ],
   "overrides": [
     {
-      "files": ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
-      "rules": {
-        "no-console": "off"
-      }
-    },
-    {
       "files": ["convex/**/*.{ts,tsx}"],
       "rules": {
         "no-console": "off"
@@ -76,13 +70,6 @@
       "files": ["client/src/main.tsx"],
       "rules": {
         "import/no-unassigned-import": "off"
-      }
-    },
-    {
-      "files": ["cypress/**/*.{ts,tsx}"],
-      "rules": {
-        "import/no-unassigned-import": "off",
-        "unicorn/require-module-specifiers": "off"
       }
     }
   ]

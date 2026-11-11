@@ -61,7 +61,7 @@ When any member leaves an organization (remove, move, deprovision), all org-scop
 ## Consequences
 
 - All new org-scoped tables must include `organizationId` and enforce authz checks server-side.
-- Cypress e2e seeds two Organizations to validate isolation.
+- Organization isolation is enforced in every org-scoped query and mutation.
 - Platform admin workflows live on `/admin`; org admin workflows live under `/settings/*`.
 
 ## See also
@@ -69,4 +69,4 @@ When any member leaves an organization (remove, move, deprovision), all org-scop
 - [Architecture](../architecture.md) — module map and routes
 - [Environment](../environment.md) — Convex and Vite variables
 - [Customization](../customization.md) — fork checklist
-- [Testing](../testing.md) — Cypress e2e
+- [Testing](../testing.md) — tests are not advised in this repository

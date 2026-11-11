@@ -86,7 +86,6 @@ The form kit lives in [client/src/components/form/](../client/src/components/for
 3. Convex mutations validate args with `parseOrThrow(schema, args)` (or `safeParse` + `validationErrorPayload`) and throw structured field errors on failure. Production examples: `platform.createOrganization`, `onboarding.provisionUser`. Demo: `devForm.submitDevForm`.
 4. Use `applyServerErrors(form, error)` in `onSubmit` catch blocks to map server field errors back onto the form.
 5. Wrap fields in `form.FormShell` (from `useAppForm`) and submit with `form.SubmitButton`.
-6. Preserve `data-testid` on fields used by Cypress.
 
 ### Basic example (typed `form.fields`)
 
@@ -133,11 +132,11 @@ const { fields } = form;
 </form.FormShell>;
 ```
 
-`serializeValues` / `deserializeValues` remain exported for tests and persistence restore (`useFormPersistence` deserializes on load).
+`serializeValues` / `deserializeValues` remain exported for persistence restore (`useFormPersistence` deserializes on load).
 
 ### Render isolation
 
-Each field binds through TanStack `form.AppField`, so **only the edited field re-renders**. The form instance is provided via context (stable identity); live summaries use `form.Subscribe` selectors. Regression coverage: [render-isolation.test.tsx](../client/src/components/form/core/render-isolation.test.tsx).
+Each field binds through TanStack `form.AppField`, so **only the edited field re-renders**. The form instance is provided via context (stable identity); live summaries use `form.Subscribe` selectors.
 
 ### Field-level props (`form.fields.*`)
 
@@ -152,7 +151,7 @@ Each field binds through TanStack `form.AppField`, so **only the edited field re
 | `searchOptions`     | Async combobox search `(term) => Promise<SelectOption[]>`                                   |
 | `searchPlaceholder` | Combobox filter input placeholder                                                           |
 | `emptyMessage`      | Combobox empty-state copy                                                                   |
-| `data-testid`       | Cypress hook (`{id}-search` on combobox filter input)                                       |
+| `data-testid`       | Optional stable hook (`{id}-search` on combobox filter input)                               |
 
 ### Reusable domain fields
 
@@ -203,7 +202,6 @@ Reference implementation: [client/src/pages/dev-form.tsx](../client/src/pages/de
 
 Collaborative rich text demo: [client/src/pages/dev-richtext-collab.tsx](../client/src/pages/dev-richtext-collab.tsx) at `/dev/richtext-collab` (dev-only). Org-scoped document ids and presence rooms are enforced in [convex/collab.ts](../convex/collab.ts); see [ADR 0002](./adr/0002-yjs-collab-and-org-scoped-presence.md).
 
-E2E coverage lives in [cypress/e2e/08-form.cy.ts](../cypress/e2e/08-form.cy.ts) (`fillRichText` in [cypress/e2e/helpers/form.ts](../cypress/e2e/helpers/form.ts)), plus [cypress/e2e/09-richtext-collab.cy.ts](../cypress/e2e/09-richtext-collab.cy.ts) and [cypress/e2e/10-datatable-presence.cy.ts](../cypress/e2e/10-datatable-presence.cy.ts).
 
 ## Conventions
 
@@ -211,7 +209,6 @@ E2E coverage lives in [cypress/e2e/08-form.cy.ts](../cypress/e2e/08-form.cy.ts) 
 - **Use `@/components/form/*`** for all data-entry forms — not inline `useForm` / `form.Field` boilerplate.
 - **Semantic colors only** — `bg-background`, `text-muted-foreground`, `border-border`; never `text-emerald-600` for status.
 - **`cn()` for conditional classes** — from `@/lib/utils`.
-- **Preserve `data-testid`** on interactive elements used by Cypress ([cypress/README.md](../cypress/README.md)).
 - **Dev routes** — gate with `requireDevTools()` in route `beforeLoad` ([client/src/lib/route-guards.ts](../client/src/lib/route-guards.ts)).
 
 ## Bridge: this repo vs the vendored shadcn skill

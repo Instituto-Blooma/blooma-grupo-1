@@ -28,9 +28,9 @@ Business logic for the B2B template. Domain vocabulary: [AGENTS.md](../AGENTS.md
 - `auth.ts` — Convex Auth; blocks OAuth until User is invited; activates onboarding on sign-in
 - `lib/auth.ts` — Platform Admin allowlist and role checks
 
-## E2E only
+## Local seed
 
-- `testing/e2e.ts` — seeds fixture Organizations and Users; not for production
+- `testing/e2e.ts` — seeds local development users during setup. Not a test suite, and not for production. Do not add tests beside it. See [docs/testing.md](../docs/testing.md).
 
 ## Convex CLI
 

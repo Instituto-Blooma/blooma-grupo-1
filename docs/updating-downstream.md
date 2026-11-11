@@ -53,14 +53,14 @@ Both repo roots should be available to the agent (sibling directories under a wo
 | Shared `convex/lib/*` helpers, authz/tenancy patterns | Product schema, domain tables, business mutations       |
 | Platform admin / onboarding / invitation improvements | Product routes, pages, and copy                         |
 | Form kit / UI primitives / frontend conventions       | `CONTEXT.md`, product ADRs, triage / issue-tracker docs |
-| Setup scripts, env docs, e2e harness improvements     | Downstream-only packages and integrations               |
+| Setup scripts and env docs                            | Downstream-only packages and integrations               |
 | Template ADRs that still apply                        | Renamed vocabulary and fork-specific customization      |
 
 When unsure, prefer a small patch that preserves behavior over replacing an entire customized file.
 
 ## Verify after an update
 
-In the downstream repo, run the project’s usual checks (typically `pnpm install`, then `pnpm run check`, and relevant tests). Fix breaks caused by the port before treating the update as done and writing `.convexplate-last-commit`.
+In the downstream repo, run the project’s usual checks (typically `pnpm install`, then `pnpm run check`). Do not add tests; see [testing.md](./testing.md). Fix breaks caused by the port before treating the update as done and writing `.convexplate-last-commit`.
 
 ## Related
 

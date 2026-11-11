@@ -59,4 +59,4 @@ Unprovisioned emails cannot sign in.
 
 - [Architecture](./architecture.md) — `convex/onboarding.ts`, `convex/lib/onboarding.ts`, `convex/auth.ts`
 - [Environment](./environment.md) — Resend and emulator setup for invitation emails
-- [Testing](./testing.md) — Cypress specs `03-onboarding.cy.ts`
+- [Testing](./testing.md) — do not add tests in this repository

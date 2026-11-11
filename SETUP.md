@@ -107,24 +107,14 @@ Exact Convex ports come from `.env.local` after setup.
 
 On Railway local/PR, URL detection uses `RAILWAY_PUBLIC_DOMAIN` when `PUBLIC_APP_URL` is unset.
 
-## E2E Tests
+## Tests
 
-```bash
-export E2E_AUTH_SECRET=local-e2e-secret   # or add to .env.local
-pnpm run e2e:run     # headless — starts stack, seeds fixtures, runs Cypress
-pnpm run e2e:open    # interactive Cypress UI
-```
-
-Run a single spec: `pnpm run e2e:run --spec cypress/e2e/08-form.cy.ts`
-
-Programmatic auth is configured by the E2E stack (`pnpm run e2e:setup` pushes `E2E_AUTH_SECRET`; `pnpm run setup` does not). Most specs use test-login; `00-auth.cy.ts` and onboarding OAuth flows use the Google emulator UI.
+Do not add unit, Cypress, or end-to-end tests in this repository. See [docs/testing.md](./docs/testing.md).
 
 ## Troubleshooting
 
 - **Missing `.env.local`**: run `pnpm run setup`
 - **Port conflicts**: `dev:all` frees stale ports automatically; stop other Convex/Vite processes
-- **Invitation tests fail**: ensure `dev:all` is running (Resend emulate on `:4003`)
-- **E2E auth fails**: run `pnpm run e2e:setup` after `pnpm run setup`; set `E2E_AUTH_SECRET` in the shell if CI and local must share a secret
 - **Railway PR preview `ECONNREFUSED 127.0.0.1:3210`**: anonymous local Convex may listen on dynamic ports. `.env.local` must stay loopback-only; public `/_convex` URLs are process env only
 - **`/_dashboard` 404 on PR preview**: redeploy with `RESET_CONVEX_DASHBOARD_CACHE=1` to clear the entire dashboard cache
 - **Sign-in fails**: confirm `AUTH_GOOGLE_EMULATE_URL` and that emulate is running. If logs say `E2E programmatic auth — skipping Google emulate`, unset `E2E_AUTH_SECRET` for manual sign-in. **Unprovisioned User** is supposed to fail. Use **Dev User** or **Test User**. If those fail after an older setup, rerun `pnpm run setup` (or `pnpm run seed:dev`) to refresh the allowlist and seed.
