@@ -1,6 +1,12 @@
 import type { ComponentType } from 'react';
 import { Button } from '@/components/ui/button';
-import { StatusBadge, UrgencyBadge, formatElapsed, type MedicationRequest } from './shared';
+import {
+  StatusBadge,
+  UrgencyBadge,
+  formatDateTime,
+  formatElapsed,
+  type MedicationRequest,
+} from './shared';
 
 export type RequestAction = {
   id: string;
@@ -59,6 +65,7 @@ export function RequestTable({
             <th className="px-3 py-2 font-medium">Medicamento</th>
             <th className="px-3 py-2 font-medium">Status</th>
             <th className="px-3 py-2 font-medium">Pedido</th>
+            <th className="px-3 py-2 font-medium">Prazo</th>
             <th className="px-3 py-2 font-medium">
               {showRefusalReason ? 'Observação / motivo da recusa' : 'Observação'}
             </th>
@@ -89,6 +96,13 @@ export function RequestTable({
                 </td>
                 <td className="whitespace-nowrap px-3 py-3 text-muted-foreground">
                   {formatElapsed(request.createdAt, now)}
+                </td>
+                <td className="whitespace-nowrap px-3 py-3">
+                  {request.deadline ? (
+                    <span className="font-medium">{formatDateTime(request.deadline, now)}</span>
+                  ) : (
+                    <span className="text-muted-foreground">Sem prazo</span>
+                  )}
                 </td>
                 <td className="max-w-[260px] px-3 py-3">
                   {request.notes ? <p>{request.notes}</p> : null}

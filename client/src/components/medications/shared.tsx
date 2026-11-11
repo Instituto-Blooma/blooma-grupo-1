@@ -36,10 +36,15 @@ export type MedicationRequest = {
   route: string;
   urgency: Urgency;
   notes: string | null;
+  deadline: number | null;
   status: RequestStatus;
   refusalReason: string | null;
   createdAt: number;
   updatedAt: number;
+  separationStartedAt: number | null;
+  sentAt: number | null;
+  receivedAt: number | null;
+  refusedAt: number | null;
 };
 
 export const URGENCY_STYLE: Record<Urgency, { badge: string; dot: string; ring: string }> = {
@@ -124,6 +129,28 @@ export function formatElapsed(since: number, now: number) {
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
   return rest ? `há ${hours} h ${rest} min` : `há ${hours} h`;
+}
+
+/** "11/11 às 14:30", or "hoje às 14:30" for today. */
+export function formatDateTime(value: number, now: number) {
+  const date = new Date(value);
+  const time = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  if (date.toDateString() === new Date(now).toDateString()) {
+    return `hoje às ${time}`;
+  }
+  const day = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  return `${day} às ${time}`;
+}
+
+/** Duration between two steps, e.g. "12 min" or "1 h 05 min". */
+export function formatDuration(from: number, to: number) {
+  const minutes = Math.max(0, Math.round((to - from) / 60_000));
+  if (minutes < 60) {
+    return `${minutes} min`;
+  }
+  const hours = Math.floor(minutes / 60);
+  const rest = String(minutes % 60).padStart(2, '0');
+  return `${hours} h ${rest} min`;
 }
 
 export function useHospitalData(organizationId: string) {

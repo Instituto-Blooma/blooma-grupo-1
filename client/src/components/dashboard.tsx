@@ -1,9 +1,10 @@
+import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useAuthActions } from '@convex-dev/auth/react';
 import { usePermission, useTenantsData } from '@djpanda/convex-tenants/react';
 import { useConvexAuth, useQuery } from 'convex/react';
-import { ArrowLeftRight, LogOut, Pill, Stethoscope } from 'lucide-react';
-import { BloomaWordmark } from '@/components/blooma-brand';
+import { ArrowLeftRight, History, ListOrdered, LogOut, Pill, Stethoscope } from 'lucide-react';
+import { MedBridgeWordmark } from '@/components/medbridge-brand';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,7 +19,8 @@ import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { ImpersonationBanner } from '@/components/impersonation-banner';
 import { OrganizationContextControl } from '@/components/organization-context-control';
-import { MedicationWorkspace, ProfilePicker } from '@/components/medications/workspace';
+import { RequestHistory } from '@/components/medications/history';
+import { HospitalHome, MedicationWorkspace } from '@/components/medications/workspace';
 import { PROFILE_LABEL, useHospitalProfile, type HospitalProfile } from '@/lib/hospital-profile';
 import { api } from '../../../convex/_generated/api';
 
@@ -30,10 +32,21 @@ function HospitalArea({
   readonly hospitalName: string;
 }) {
   const [profile, setProfile] = useHospitalProfile(organizationId);
+  const [view, setView] = useState<'fila' | 'historico'>('fila');
 
   if (!profile) {
-    return <ProfilePicker hospitalName={hospitalName} onSelect={setProfile} />;
+    return (
+      <HospitalHome
+        hospitalName={hospitalName}
+        onSelect={(next) => {
+          setView('fila');
+          setProfile(next);
+        }}
+      />
+    );
   }
+
+  const isHistory = view === 'historico';
 
   return (
     <div className="space-y-6">
@@ -45,14 +58,38 @@ function HospitalArea({
           <p className="mt-1 flex items-center gap-2 text-muted-foreground">
             <ProfileIcon profile={profile} />
             Perfil: <strong className="text-foreground">{PROFILE_LABEL[profile]}</strong>
+            {isHistory ? <span>· Histórico</span> : null}
           </p>
         </div>
-        <Button variant="outline" onClick={() => setProfile(null)} data-testid="switch-profile">
-          <ArrowLeftRight className="mr-1 h-4 w-4" />
-          Trocar perfil
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={isHistory ? 'default' : 'outline'}
+            onClick={() => setView(isHistory ? 'fila' : 'historico')}
+            data-testid="toggle-history"
+          >
+            {isHistory ? (
+              <>
+                <ListOrdered className="mr-1 h-4 w-4" />
+                {profile === 'farmacia' ? 'Voltar para a fila' : 'Voltar às solicitações'}
+              </>
+            ) : (
+              <>
+                <History className="mr-1 h-4 w-4" />
+                Histórico
+              </>
+            )}
+          </Button>
+          <Button variant="outline" onClick={() => setProfile(null)} data-testid="switch-profile">
+            <ArrowLeftRight className="mr-1 h-4 w-4" />
+            Trocar perfil
+          </Button>
+        </div>
       </div>
-      <MedicationWorkspace organizationId={organizationId} profile={profile} />
+      {isHistory ? (
+        <RequestHistory organizationId={organizationId} />
+      ) : (
+        <MedicationWorkspace organizationId={organizationId} profile={profile} />
+      )}
     </div>
   );
 }
@@ -100,7 +137,7 @@ export function Dashboard() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center justify-between gap-4 px-4 md:px-6">
           <div className="flex items-center gap-3">
-            <BloomaWordmark compact />
+            <MedBridgeWordmark compact />
             <div data-testid="org-switcher">
               <OrganizationContextControl isPlatformAdmin={Boolean(isPlatformAdmin)} />
             </div>
@@ -194,7 +231,7 @@ export function Dashboard() {
       <footer className="border-t py-4">
         <div className="container px-4 md:px-6">
           <p className="text-center text-sm text-muted-foreground">
-            Instituto Blooma · Meninas fazendo o futuro
+            MedBridge · Solicitação de medicamentos entre enfermagem e farmácia
           </p>
         </div>
       </footer>

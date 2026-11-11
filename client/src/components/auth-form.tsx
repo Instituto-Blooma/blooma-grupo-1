@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuthActions } from '@convex-dev/auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BloomaWordmark } from '@/components/blooma-brand';
+import { MedBridgeWordmark } from '@/components/medbridge-brand';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
@@ -46,7 +46,7 @@ export function AuthForm() {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-4">
-        <BloomaWordmark className="justify-center" />
+        <MedBridgeWordmark className="justify-center" />
         <div className="space-y-1 text-center">
           <CardTitle className="font-serif text-2xl font-semibold tracking-tight">Entrar</CardTitle>
           <CardDescription>Entre com a conta Google do seu hospital.</CardDescription>

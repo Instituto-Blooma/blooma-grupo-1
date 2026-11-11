@@ -23,6 +23,8 @@ type DemoRequest = {
   minutesAgo: number;
   notes?: string;
   refusalReason?: string;
+  /** Minutes from now until the deadline; omit for "sem prazo". */
+  deadlineInMinutes?: number;
 };
 
 type DemoHospital = {
@@ -54,6 +56,7 @@ export const DEMO_HOSPITALS: ReadonlyArray<DemoHospital> = [
         urgency: 'urgente',
         status: 'solicitado',
         minutesAgo: 6,
+        deadlineInMinutes: 15,
         notes: 'Paciente instável, prioridade máxima.',
       },
       {
@@ -77,6 +80,7 @@ export const DEMO_HOSPITALS: ReadonlyArray<DemoHospital> = [
         urgency: 'prioritario',
         status: 'solicitado',
         minutesAgo: 22,
+        deadlineInMinutes: 90,
       },
       {
         sector: 'UTI Adulto',
@@ -88,6 +92,7 @@ export const DEMO_HOSPITALS: ReadonlyArray<DemoHospital> = [
         urgency: 'prioritario',
         status: 'enviado',
         minutesAgo: 35,
+        deadlineInMinutes: 40,
       },
       {
         sector: 'Enfermaria Clínica',
@@ -100,6 +105,19 @@ export const DEMO_HOSPITALS: ReadonlyArray<DemoHospital> = [
         status: 'solicitado',
         minutesAgo: 41,
         notes: 'Administrar em jejum.',
+      },
+      {
+        // Newer than Omeprazol but has a deadline, so it comes first within "Rotina".
+        sector: 'Enfermaria Clínica',
+        bed: 'Leito 02',
+        medication: 'Losartana',
+        quantity: 1,
+        dose: '50 mg',
+        route: 'Oral',
+        urgency: 'rotina',
+        status: 'solicitado',
+        minutesAgo: 5,
+        deadlineInMinutes: 60 * 3,
       },
       {
         sector: 'Enfermaria Clínica',
@@ -146,6 +164,7 @@ export const DEMO_HOSPITALS: ReadonlyArray<DemoHospital> = [
         urgency: 'urgente',
         status: 'solicitado',
         minutesAgo: 9,
+        deadlineInMinutes: 10,
       },
       {
         sector: 'Enfermaria Cirúrgica',
@@ -175,6 +194,25 @@ export const DEMO_HOSPITALS: ReadonlyArray<DemoHospital> = [
 
 function bedLabel(index: number) {
   return `Leito ${String(index + 1).padStart(2, '0')}`;
+}
+
+/** Deletes a hospital's requests, beds and sectors so the demo data can be rebuilt. */
+async function clearHospitalStructure(ctx: MutationCtx, organizationId: string) {
+  for await (const request of ctx.db
+    .query('medicationRequests')
+    .withIndex('by_org_and_urgencyRank', (q) => q.eq('organizationId', organizationId))) {
+    await ctx.db.delete(request._id);
+  }
+  for await (const bed of ctx.db
+    .query('beds')
+    .withIndex('by_org_and_sector_and_sortOrder', (q) => q.eq('organizationId', organizationId))) {
+    await ctx.db.delete(bed._id);
+  }
+  for await (const sector of ctx.db
+    .query('sectors')
+    .withIndex('by_org_and_sortOrder', (q) => q.eq('organizationId', organizationId))) {
+    await ctx.db.delete(sector._id);
+  }
 }
 
 async function seedHospitalStructure(
@@ -235,6 +273,10 @@ async function seedHospitalStructure(
       urgency: request.urgency,
       urgencyRank: URGENCY_RANK[request.urgency],
       notes: request.notes,
+      deadline:
+        request.deadlineInMinutes === undefined
+          ? undefined
+          : now + request.deadlineInMinutes * 60_000,
       status: request.status,
       refusalReason: request.refusalReason,
       createdBy: accountUserId,
@@ -249,12 +291,17 @@ async function seedHospitalStructure(
   return true;
 }
 
+/**
+ * `npx convex run demo:seedHospitals "{}"` adds the demo hospitals if missing.
+ * `npx convex run demo:seedHospitals "{\"reset\":true}"` wipes their sectors, beds and requests
+ * first, to start a pitch rehearsal from the original demo data.
+ */
 export const seedHospitals = internalMutation({
-  args: {},
+  args: { reset: v.optional(v.boolean()) },
   returns: v.array(
     v.object({ hospital: v.string(), accountEmail: v.string(), seededData: v.boolean() })
   ),
-  handler: async (ctx) => {
+  handler: async (ctx, { reset }) => {
     const { user: platformUser } = await ensureUserByEmail(
       ctx,
       PLATFORM_ADMIN_EMAIL,
@@ -271,6 +318,9 @@ export const seedHospitals = internalMutation({
         hospital.slug
       );
       await seedOrgMember(ctx, platformUser._id, organizationId, account._id, 'admin');
+      if (reset) {
+        await clearHospitalStructure(ctx, organizationId);
+      }
       const seededData = await seedHospitalStructure(ctx, organizationId, hospital, account._id);
       result.push({ hospital: hospital.name, accountEmail: hospital.accountEmail, seededData });
     }

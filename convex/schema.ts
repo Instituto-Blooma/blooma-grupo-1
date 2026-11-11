@@ -85,6 +85,8 @@ const schema = defineSchema({
     // 0 = urgente, 1 = prioritario, 2 = rotina; drives the pharmacy queue order.
     urgencyRank: v.number(),
     notes: v.optional(v.string()),
+    // Optional "data e horário limite" set by nursing (ms since epoch).
+    deadline: v.optional(v.number()),
     status: v.union(
       v.literal('solicitado'),
       v.literal('em_separacao'),

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { api } from '../../../../convex/_generated/api';
 import { isFinishedStatus } from '../../../../convex/lib/medicationOptions';
+import { PRODUCT_NAME } from '@/components/medbridge-brand';
 import { Button } from '@/components/ui/button';
 import type { HospitalProfile } from '@/lib/hospital-profile';
 import { NewRequestDialog } from './new-request-dialog';
@@ -40,8 +41,8 @@ function errorMessage(error: unknown) {
     : 'Algo deu errado';
 }
 
-/** Shown right after signing in with the hospital account. */
-export function ProfilePicker({
+/** Hospital home page: shown right after signing in with the hospital account. */
+export function HospitalHome({
   hospitalName,
   onSelect,
 }: {
@@ -64,12 +65,18 @@ export function ProfilePicker({
   ];
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col items-center gap-6 py-6 text-center">
-      <div>
-        <h2 className="font-serif text-2xl font-semibold">Quem está usando?</h2>
-        <p className="mt-1 text-muted-foreground">{hospitalName} · escolha o seu perfil</p>
+    <div className="mx-auto flex max-w-2xl flex-col items-center gap-8 py-10 text-center">
+      <div className="space-y-3">
+        <h1 className="font-serif text-5xl font-semibold tracking-tight sm:text-6xl">
+          {PRODUCT_NAME}
+        </h1>
+        <p className="text-muted-foreground">
+          Solicitação de medicamentos entre enfermagem e farmácia
+        </p>
+        <p className="text-lg font-semibold">{hospitalName}</p>
       </div>
-      <div className="grid w-full gap-4 sm:grid-cols-2">
+      <p className="text-sm font-medium text-muted-foreground">Entrar como:</p>
+      <div className="-mt-4 grid w-full gap-4 sm:grid-cols-2">
         {options.map(({ profile, title, description, icon: Icon }) => (
           <button
             key={profile}
@@ -90,14 +97,12 @@ export function ProfilePicker({
   );
 }
 
-function splitRequests(requests: ReadonlyArray<MedicationRequest>, filter: BedFilterValue) {
-  const visible = requests.filter((request) => matchesBedFilter(request, filter));
-  // Server order is already: most urgent first, oldest first within the same urgency.
-  const active = visible.filter((request) => !isFinishedStatus(request.status));
-  const finished = visible
-    .filter((request) => isFinishedStatus(request.status))
-    .toSorted((left, right) => right.updatedAt - left.updatedAt);
-  return { active, finished };
+/** Requests still in progress. Finished ones (received or refused) live in the Histórico page. */
+function activeRequests(requests: ReadonlyArray<MedicationRequest>, filter: BedFilterValue) {
+  // Server order already is the queue order: urgency, then nearest deadline, then oldest.
+  return requests.filter(
+    (request) => !isFinishedStatus(request.status) && matchesBedFilter(request, filter)
+  );
 }
 
 function SectionTitle({
@@ -139,10 +144,7 @@ export function MedicationWorkspace({
   const confirmReceived = useMutation(api.medications.confirmReceived);
 
   const isLoading = sectors === undefined || requests === undefined;
-  const { active, finished } = useMemo(
-    () => splitRequests(requests ?? [], filter),
-    [requests, filter]
-  );
+  const active = useMemo(() => activeRequests(requests ?? [], filter), [requests, filter]);
   const actions = useMemo<ReadonlyArray<RequestAction>>(() => {
     if (profile === 'enfermagem') {
       return [
@@ -224,7 +226,7 @@ export function MedicationWorkspace({
         />
         <p className="text-sm text-muted-foreground">
           {isPharmacy
-            ? 'Ordem de atendimento: Urgente, depois Prioritário, depois Rotina. Dentro de cada nível, o pedido mais antigo vem primeiro.'
+            ? 'Ordem de atendimento: Urgente, depois Prioritário, depois Rotina. Dentro de cada nível, vem primeiro o prazo mais próximo; pedidos sem prazo ficam por último.'
             : 'Quando a farmácia marcar um pedido como "Enviado", confirme o recebimento assim que o medicamento chegar ao leito.'}
         </p>
         <RequestTable
@@ -238,19 +240,6 @@ export function MedicationWorkspace({
               ? 'Nenhum pedido aguardando a farmácia neste filtro.'
               : 'Nenhuma solicitação em andamento neste filtro.'
           }
-        />
-      </section>
-
-      <section className="space-y-3">
-        <SectionTitle icon={PackageCheck} title="Finalizadas" count={finished.length} />
-        <RequestTable
-          testId="finished-requests"
-          requests={finished}
-          now={now}
-          isLoading={isLoading}
-          actions={[]}
-          showRefusalReason
-          emptyMessage="Nenhuma solicitação recebida ou recusada neste filtro."
         />
       </section>
 

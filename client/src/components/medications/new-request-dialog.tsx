@@ -45,6 +45,8 @@ type FormState = {
   dose: string;
   route: string;
   urgency: Urgency | null;
+  /** Value of the datetime-local input ("2026-11-11T14:30"), or '' for "sem prazo". */
+  deadline: string;
   notes: string;
 };
 
@@ -57,6 +59,7 @@ function initialState(preset: BedFilterValue): FormState {
     dose: '',
     route: '',
     urgency: null,
+    deadline: '',
     notes: '',
   };
 }
@@ -90,13 +93,17 @@ export function NewRequestDialog({
   if (!form.dose.trim()) missing.push('dose');
   if (!form.route) missing.push('via');
   if (!form.urgency) missing.push('urgência');
+  // datetime-local values are in the browser's local time zone.
+  const deadline = form.deadline ? new Date(form.deadline).getTime() : null;
+  const isDeadlineInPast = deadline !== null && deadline < Date.now();
+  if (deadline !== null && Number.isNaN(deadline)) missing.push('prazo válido');
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((current) => ({ ...current, [key]: value }));
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (missing.length > 0 || !sector || !bed || !form.urgency) {
+    if (missing.length > 0 || isDeadlineInPast || !sector || !bed || !form.urgency) {
       return;
     }
     setIsSaving(true);
@@ -110,6 +117,7 @@ export function NewRequestDialog({
         route: form.route,
         urgency: form.urgency,
         notes: form.notes.trim() ? form.notes : undefined,
+        deadline: deadline ?? undefined,
       });
       toast.success(
         `Solicitação enviada para a farmácia (${formatLocation(sector.name, bed.label)})`
@@ -266,6 +274,38 @@ export function NewRequestDialog({
           </div>
 
           <div className="flex flex-col gap-1.5">
+            <Label htmlFor="nova-prazo">
+              Data e horário limite{' '}
+              <span className="font-normal text-muted-foreground">(opcional)</span>
+            </Label>
+            <div className="flex gap-2">
+              <Input
+                id="nova-prazo"
+                type="datetime-local"
+                value={form.deadline}
+                onChange={(event) => update('deadline', event.target.value)}
+                className="sm:w-64"
+              />
+              {form.deadline ? (
+                <Button type="button" variant="ghost" onClick={() => update('deadline', '')}>
+                  Sem prazo
+                </Button>
+              ) : null}
+            </div>
+            <p
+              className={
+                isDeadlineInPast
+                  ? 'text-xs font-medium text-red-700 dark:text-red-300'
+                  : 'text-xs text-muted-foreground'
+              }
+            >
+              {isDeadlineInPast
+                ? 'Esse horário já passou. Escolha um horário futuro ou deixe sem prazo.'
+                : 'Dentro do mesmo nível de urgência, a farmácia atende primeiro o prazo mais próximo.'}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="nova-observacao">
               Observação <span className="font-normal text-muted-foreground">(opcional)</span>
             </Label>
@@ -287,7 +327,7 @@ export function NewRequestDialog({
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={missing.length > 0 || isSaving}>
+            <Button type="submit" disabled={missing.length > 0 || isDeadlineInPast || isSaving}>
               {isSaving ? 'Enviando...' : 'Enviar para a farmácia'}
             </Button>
           </DialogFooter>

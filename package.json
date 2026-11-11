@@ -38,6 +38,7 @@
     "cy:open": "cypress open",
     "cy:run": "cypress run --",
     "seed:dev": "node script/seed.mjs dev",
+    "demo:reset": "node script/demo-reset.mjs",
     "e2e:stack": "node script/e2e.mjs monitor",
     "e2e:stack:up": "node script/e2e.mjs up",
     "e2e:stack:down": "node script/e2e.mjs down",

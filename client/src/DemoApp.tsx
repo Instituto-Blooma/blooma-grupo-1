@@ -1,12 +1,13 @@
 import { Button } from '@/components/ui/button';
-import { BloomaDotField, BloomaWordmark } from '@/components/blooma-brand';
+import { BloomaDotField } from '@/components/blooma-brand';
+import { MedBridgeWordmark } from '@/components/medbridge-brand';
 
 export function DemoApp() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <BloomaDotField />
       <div className="relative mx-auto flex max-w-3xl flex-col gap-8 px-6 py-16 sm:py-24">
-        <BloomaWordmark />
+        <MedBridgeWordmark />
         <div className="inline-flex w-fit items-center rounded-full border bg-muted px-3 py-1 text-sm text-muted-foreground">
           Demo mode
         </div>

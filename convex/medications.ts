@@ -45,8 +45,24 @@ export const listSectorsWithBeds = query({
 });
 
 /**
- * Every request of a hospital, most urgent first and, within the same urgency, oldest first.
- * Sector and bed names are joined in so screens never show a bare ID.
+ * Queue order: most urgent first; within the same urgency, the nearest deadline first, and
+ * requests without a deadline last (oldest first among them).
+ */
+function compareQueueOrder(left: Doc<'medicationRequests'>, right: Doc<'medicationRequests'>) {
+  if (left.urgencyRank !== right.urgencyRank) {
+    return left.urgencyRank - right.urgencyRank;
+  }
+  const leftDeadline = left.deadline ?? Number.POSITIVE_INFINITY;
+  const rightDeadline = right.deadline ?? Number.POSITIVE_INFINITY;
+  if (leftDeadline !== rightDeadline) {
+    return leftDeadline - rightDeadline;
+  }
+  return left.createdAt - right.createdAt;
+}
+
+/**
+ * Every request of a hospital in queue order (see compareQueueOrder), with the time of each
+ * step for the history timeline. Sector and bed names are joined in so screens never show an ID.
  */
 export const listRequests = query({
   args: { organizationId: v.string() },
@@ -54,10 +70,12 @@ export const listRequests = query({
     if (!(await getHospitalAccess(ctx, organizationId))) {
       return [];
     }
-    const requests = await ctx.db
-      .query('medicationRequests')
-      .withIndex('by_org_and_urgencyRank', (q) => q.eq('organizationId', organizationId))
-      .take(MAX_REQUESTS);
+    const requests = (
+      await ctx.db
+        .query('medicationRequests')
+        .withIndex('by_org_and_urgencyRank', (q) => q.eq('organizationId', organizationId))
+        .take(MAX_REQUESTS)
+    ).toSorted(compareQueueOrder);
 
     const sectorNames = new Map<Id<'sectors'>, string>();
     const bedLabels = new Map<Id<'beds'>, string>();
@@ -82,10 +100,15 @@ export const listRequests = query({
       route: request.route,
       urgency: request.urgency,
       notes: request.notes ?? null,
+      deadline: request.deadline ?? null,
       status: request.status,
       refusalReason: request.refusalReason ?? null,
       createdAt: request.createdAt,
       updatedAt: request.updatedAt,
+      separationStartedAt: request.separationStartedAt ?? null,
+      sentAt: request.sentAt ?? null,
+      receivedAt: request.receivedAt ?? null,
+      refusedAt: request.refusedAt ?? null,
     }));
   },
 });
@@ -100,9 +123,13 @@ export const createRequest = mutation({
     route: v.string(),
     urgency: urgencyValidator,
     notes: v.optional(v.string()),
+    deadline: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const userId = await requireHospitalAccess(ctx, args.organizationId);
+    if (args.deadline !== undefined && !Number.isFinite(args.deadline)) {
+      throw new Error('Data e horário limite inválidos');
+    }
 
     const bed = await ctx.db.get(args.bedId);
     if (!bed || bed.organizationId !== args.organizationId) {
@@ -136,6 +163,7 @@ export const createRequest = mutation({
       urgency: args.urgency,
       urgencyRank: URGENCY_RANK[args.urgency],
       notes: notes ? notes : undefined,
+      deadline: args.deadline,
       status: 'solicitado',
       createdBy: userId,
       createdAt: now,
