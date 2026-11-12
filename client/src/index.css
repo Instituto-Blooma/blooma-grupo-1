@@ -322,3 +322,117 @@
     inset: -1px;
   }
 }
+
+/*
+ * ALTO CONTRASTE (eMAG 3.1, recomendação 4.1 / item "Alto contraste" da barra de acessibilidade)
+ * Turned on by the accessibility bar, which adds `alto-contraste` to <html>.
+ * Black background, white text, yellow links and interactive elements, strong focus outline.
+ * The VLibras widget ([vw] and everything inside it) keeps its own look.
+ */
+html.alto-contraste {
+  color-scheme: dark;
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 0%;
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 0%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 60 100% 50%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 0% 0%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 0%;
+  --muted-foreground: 0 0% 100%;
+  --accent: 0 0% 0%;
+  --accent-foreground: 60 100% 50%;
+  --destructive: 0 0% 0%;
+  --destructive-foreground: 60 100% 50%;
+  --border: 0 0% 100%;
+  --input: 0 0% 100%;
+  --ring: 60 100% 50%;
+}
+
+html.alto-contraste body,
+html.alto-contraste *:not([vw]):not([vw] *) {
+  background-color: #000 !important;
+  background-image: none !important;
+  color: #fff !important;
+  border-color: #fff !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* Decorative overlays (::before/::after) sit on top of content: make them see-through. */
+html.alto-contraste *:not([vw]):not([vw] *)::before,
+html.alto-contraste *:not([vw]):not([vw] *)::after {
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: #fff !important;
+  box-shadow: none !important;
+}
+
+/* Links: yellow and underlined. */
+html.alto-contraste a:not([vw] *),
+html.alto-contraste a:not([vw] *) * {
+  color: #ff0 !important;
+  text-decoration: underline !important;
+}
+
+/* Buttons and other controls: yellow text with a yellow outline, so they stand out from text. */
+html.alto-contraste button:not([vw] *),
+html.alto-contraste [role='button']:not([vw] *),
+html.alto-contraste [role='combobox']:not([vw] *),
+html.alto-contraste [role='radio']:not([vw] *),
+html.alto-contraste [role='checkbox']:not([vw] *),
+html.alto-contraste [role='switch']:not([vw] *),
+html.alto-contraste input:not([vw] *),
+html.alto-contraste select:not([vw] *),
+html.alto-contraste textarea:not([vw] *) {
+  outline: 2px solid #ff0 !important;
+  outline-offset: -2px;
+}
+
+html.alto-contraste button:not([vw] *),
+html.alto-contraste button:not([vw] *) *,
+html.alto-contraste [role='button']:not([vw] *),
+html.alto-contraste [role='button']:not([vw] *) * {
+  color: #ff0 !important;
+}
+
+/* Selected options, checked radios and pressed toggles: inverted (yellow background). */
+html.alto-contraste [aria-pressed='true']:not([vw] *),
+html.alto-contraste [aria-pressed='true']:not([vw] *) *,
+html.alto-contraste [aria-selected='true']:not([vw] *),
+html.alto-contraste [aria-selected='true']:not([vw] *) *,
+html.alto-contraste [data-state='checked']:not([vw] *),
+html.alto-contraste [data-state='checked']:not([vw] *) * {
+  background-color: #ff0 !important;
+  color: #000 !important;
+}
+
+/* Disabled controls stay readable but clearly inactive. */
+html.alto-contraste :disabled:not([vw] *),
+html.alto-contraste [aria-disabled='true']:not([vw] *) {
+  outline-style: dashed !important;
+  opacity: 1 !important;
+}
+
+html.alto-contraste ::placeholder {
+  color: #ccc !important;
+  opacity: 1;
+}
+
+html.alto-contraste svg:not([vw] *) {
+  color: inherit !important;
+}
+
+/* Keyboard focus: thick yellow outline everywhere (eMAG recomendação 4.4). */
+html.alto-contraste *:focus-visible {
+  outline: 3px solid #ff0 !important;
+  outline-offset: 2px !important;
+}
+
+/* Toast notifications keep a visible frame. */
+html.alto-contraste [data-sonner-toast] {
+  border: 2px solid #fff !important;
+}

@@ -4,6 +4,8 @@ import { ConvexAuthProvider } from '@convex-dev/auth/react';
 import { ConvexReactClient } from 'convex/react';
 import '@talentum-ventures/convex-datatable/styles.css';
 import './index.css';
+// Applies saved accessibility preferences (font size, high contrast) before the first render.
+import '@/lib/accessibility';
 import { DemoApp } from './DemoApp';
 import { ThemeProvider } from '@/components/theme-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
