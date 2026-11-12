@@ -16,8 +16,8 @@ async function sendEmail(args: { email: string; organizationName: string; accept
     body: JSON.stringify({
       from,
       to: [args.email],
-      subject: `Join ${args.organizationName}`,
-      html: `<p>You have been invited to join <strong>${args.organizationName}</strong>.</p><p><a href="${args.acceptUrl}">Sign in to activate your account</a></p>`,
+      subject: `Convite para ${args.organizationName}`,
+      html: `<p>Você foi convidado para entrar em <strong>${args.organizationName}</strong>.</p><p><a href="${args.acceptUrl}">Entre para ativar sua conta</a></p>`,
     }),
   });
   if (!response.ok) {

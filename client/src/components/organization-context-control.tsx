@@ -20,7 +20,7 @@ export function OrganizationContextControl({ isPlatformAdmin }: OrganizationCont
   if (isOrganizationsLoading) {
     return (
       <span className="text-sm text-muted-foreground" data-testid="org-name-loading">
-        Loading...
+        Carregando...
       </span>
     );
   }

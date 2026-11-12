@@ -27,7 +27,7 @@ async function getTenantUser(ctx: QueryCtx | MutationCtx, userId: string) {
 async function requireTenantMembership(ctx: QueryCtx, userId: string, organizationId: string) {
   const member = await tenantsClient.getMember(ctx, organizationId, userId);
   if (!member) {
-    throw new Error('Not a member of this organization');
+    throw new Error('Você não é membro desta organização');
   }
   return member;
 }

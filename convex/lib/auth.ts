@@ -39,7 +39,7 @@ export function isAllowlistedPlatformEmail(email: string): boolean {
 export async function requireAuthUserId(ctx: QueryCtx | MutationCtx): Promise<Id<'users'>> {
   const userId = await getAuthUserId(ctx);
   if (!userId) {
-    throw new Error('Not authenticated');
+    throw new Error('Você precisa entrar na sua conta');
   }
   return userId;
 }
@@ -63,7 +63,7 @@ export async function resolveActingUserId(
 export async function requireUserId(ctx: QueryCtx | MutationCtx): Promise<Id<'users'>> {
   const userId = await resolveActingUserId(ctx);
   if (!userId) {
-    throw new Error('Not authenticated');
+    throw new Error('Você precisa entrar na sua conta');
   }
   return userId;
 }
@@ -99,7 +99,7 @@ export async function isPlatformAdmin(ctx: QueryCtx | MutationCtx, userId: strin
 
 export async function requirePlatformAdmin(ctx: QueryCtx | MutationCtx, userId: string) {
   if (!(await isPlatformAdmin(ctx, userId))) {
-    throw new Error('Platform admin access required');
+    throw new Error('Acesso restrito à administração da plataforma');
   }
 }
 
@@ -136,15 +136,15 @@ export async function createOrUpdateOAuthUser(
 ): Promise<Id<'users'>> {
   const email = args.profile.email ? normalizeEmail(args.profile.email) : null;
   if (!email) {
-    throw new ConvexError('Email is required');
+    throw new ConvexError('Informe o e-mail');
   }
 
   const gate = await assertOAuthAllowed(ctx, email);
   if (!gate.allowed) {
     if (gate.reason === 'pending_invite') {
-      throw new ConvexError('Your invitation has not been sent yet. Contact your administrator.');
+      throw new ConvexError('Seu convite ainda não foi enviado. Fale com a administração.');
     }
-    throw new ConvexError('No account found. Contact your administrator.');
+    throw new ConvexError('Nenhuma conta encontrada. Fale com a administração.');
   }
 
   const existingUser = args.existingUserId

@@ -76,7 +76,7 @@ export const startImpersonation = mutation({
 
     const adminId = await requireAuthUserId(ctx);
     if (adminId === args.targetUserId) {
-      throw new ConvexError('Cannot impersonate yourself');
+      throw new ConvexError('Não é possível acessar como você mesmo');
     }
     await requirePlatformAdmin(ctx, adminId);
     await authz.require(ctx, adminId, 'platform:impersonate');
@@ -160,7 +160,7 @@ export const assertNotImpersonatingSelf = mutation({
   handler: async (ctx, args) => {
     const adminId = await requireAuthUserId(ctx);
     if (adminId === args.targetUserId) {
-      throw new ConvexError('Cannot impersonate yourself');
+      throw new ConvexError('Não é possível acessar como você mesmo');
     }
     return true;
   },

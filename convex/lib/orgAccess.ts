@@ -67,11 +67,11 @@ export async function requireOrgTodoAccess(
   const userId = await requireUserId(ctx);
   const scoped = getOrgScopedTodo(await ctx.db.get(todoId), organizationId);
   if (!scoped) {
-    throw new Error('Todo not found');
+    throw new Error('Tarefa não encontrada');
   }
   const allowed = await canAccessOrgTodo(ctx, organizationId, userId, scoped.createdBy, action);
   if (!allowed) {
-    throw new Error('Permission denied');
+    throw new Error('Permissão negada');
   }
   return { userId, scoped };
 }

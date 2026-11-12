@@ -51,7 +51,7 @@ export function UserBadge({
 }: UserBadgeProps) {
   const { height, fontSize, gap } = SIZE_CONFIG[size];
   const avatarSrc = user.avatarUrl ?? user.image ?? null;
-  const displayName = user.name ?? user.email ?? 'Unknown';
+  const displayName = user.name ?? user.email ?? 'Desconhecido';
   const initial = displayName.charAt(0).toUpperCase();
   const color = user.color || DEFAULT_COLOR;
 

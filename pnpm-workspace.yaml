@@ -19,3 +19,5 @@ minimumReleaseAgeExclude:
 blockExoticSubdeps: true
 trustPolicy: no-downgrade
 trustPolicyIgnoreAfter: 4320
+patchedDependencies:
+  '@djpanda/convex-tenants': patches/@djpanda__convex-tenants.patch

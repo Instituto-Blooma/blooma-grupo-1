@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@djpanda/convex-tenants': b2ce8f3ec460c37922fd7b27bbd6cb28055a91b9ddf0ba395befd667db01abb2
+
 importers:
 
   .:
@@ -19,7 +22,7 @@ importers:
         version: 2.4.0(@standard-schema/spec@1.1.0)(convex@1.47.0(react@18.3.1))(hono@4.12.25)(react@18.3.1)(typescript@5.9.3)(zod@4.4.3)
       '@djpanda/convex-tenants':
         specifier: ^0.5.0
-        version: 0.5.0(@djpanda/convex-authz@2.4.0(@standard-schema/spec@1.1.0)(convex@1.47.0(react@18.3.1))(hono@4.12.25)(react@18.3.1)(typescript@5.9.3)(zod@4.4.3))(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(clsx@2.1.1)(convex@1.47.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(tailwind-merge@2.6.1)
+        version: 0.5.0(patch_hash=b2ce8f3ec460c37922fd7b27bbd6cb28055a91b9ddf0ba395befd667db01abb2)(@djpanda/convex-authz@2.4.0(@standard-schema/spec@1.1.0)(convex@1.47.0(react@18.3.1))(hono@4.12.25)(react@18.3.1)(typescript@5.9.3)(zod@4.4.3))(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(clsx@2.1.1)(convex@1.47.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(tailwind-merge@2.6.1)
       '@mdxeditor/editor':
         specifier: 4.0.4
         version: 4.0.4(@codemirror/language@6.12.4)(@lezer/highlight@1.2.3)(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(yjs@13.6.27)
@@ -4974,7 +4977,7 @@ snapshots:
       - typescript
       - zod
 
-  '@djpanda/convex-tenants@0.5.0(@djpanda/convex-authz@2.4.0(@standard-schema/spec@1.1.0)(convex@1.47.0(react@18.3.1))(hono@4.12.25)(react@18.3.1)(typescript@5.9.3)(zod@4.4.3))(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(clsx@2.1.1)(convex@1.47.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(tailwind-merge@2.6.1)':
+  '@djpanda/convex-tenants@0.5.0(patch_hash=b2ce8f3ec460c37922fd7b27bbd6cb28055a91b9ddf0ba395befd667db01abb2)(@djpanda/convex-authz@2.4.0(@standard-schema/spec@1.1.0)(convex@1.47.0(react@18.3.1))(hono@4.12.25)(react@18.3.1)(typescript@5.9.3)(zod@4.4.3))(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(clsx@2.1.1)(convex@1.47.0(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(tailwind-merge@2.6.1)':
     dependencies:
       '@djpanda/convex-authz': 2.4.0(@standard-schema/spec@1.1.0)(convex@1.47.0(react@18.3.1))(hono@4.12.25)(react@18.3.1)(typescript@5.9.3)(zod@4.4.3)
       class-variance-authority: 0.7.1

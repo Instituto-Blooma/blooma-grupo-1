@@ -21,7 +21,7 @@ export function ImpersonationBanner() {
         <div className="flex items-center gap-2 text-sm">
           <AlertTriangle className="h-4 w-4" />
           <span>
-            Impersonating {session.targetName ?? session.targetEmail ?? session.targetUserId}
+            Acessando como {session.targetName ?? session.targetEmail ?? session.targetUserId}
           </span>
         </div>
         <Button
@@ -30,7 +30,7 @@ export function ImpersonationBanner() {
           data-testid="button-stop-impersonation"
           onClick={() => void stopImpersonation({})}
         >
-          Stop impersonating
+          Parar de acessar como este usuário
         </Button>
       </div>
     </div>

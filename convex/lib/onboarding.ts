@@ -159,7 +159,7 @@ export async function assertSingleOrgOrThrow(
 ) {
   const result = await checkSingleOrg(ctx, email, organizationId);
   if (!result.ok) {
-    throw new ConvexError('User already belongs to another organization');
+    throw new ConvexError('Este usuário já pertence a outra organização');
   }
 }
 
@@ -195,7 +195,7 @@ export async function completeOnboarding(ctx: MutationCtx, userId: Id<'users'>, 
   }
 
   if (user.onboardingStatus === 'pending') {
-    throw new ConvexError('Invitation has not been sent yet');
+    throw new ConvexError('O convite ainda não foi enviado');
   }
 
   if (user.onboardingStatus === 'active') {
@@ -209,7 +209,7 @@ export async function completeOnboarding(ctx: MutationCtx, userId: Id<'users'>, 
   if (invitation) {
     const singleOrg = await checkSingleOrg(ctx, normalized, invitation.organizationId);
     if (!singleOrg.ok) {
-      throw new ConvexError('User already belongs to another organization');
+      throw new ConvexError('Este usuário já pertence a outra organização');
     }
 
     await tenantsClient.acceptInvitation(ctx, invitation._id, userId, {

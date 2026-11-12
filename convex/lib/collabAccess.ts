@@ -29,7 +29,7 @@ export async function requireOrgCollabAccess(
 
   const member = await tenantsClient.getMember(ctx, organizationId, userId);
   if (!member) {
-    throw new ConvexError('Not a member of this organization');
+    throw new ConvexError('Você não é membro desta organização');
   }
   return userId;
 }

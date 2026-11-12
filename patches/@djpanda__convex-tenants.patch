@@ -1,0 +1,494 @@
+diff --git a/dist/react/components/invitation-accept.js b/dist/react/components/invitation-accept.js
+index 3d7e0f0dfc6cbe9aa1dac306c966e01f0fa68642..dc4ad7670b12f5150d6248d4a84747312a6f98e1 100644
+--- a/dist/react/components/invitation-accept.js
++++ b/dist/react/components/invitation-accept.js
+@@ -42,31 +42,31 @@ export function AcceptInvitation({ invitation, organizationName, isLoading = fal
+     const BuildingIcon = buildingIcon ?? _jsx(Building2, { className: "size-8" });
+     // Loading state
+     if (isLoading) {
+-        return (_jsx("div", { className: cn("min-h-screen flex items-center justify-center p-4", className), children: _jsx(Card, { className: "w-full max-w-md", children: _jsxs(CardContent, { className: "flex flex-col items-center justify-center gap-2 py-8", children: [_jsx("span", { className: "text-muted-foreground", children: LoadingIcon }), _jsx("p", { className: "text-sm text-muted-foreground", children: "Loading invitation..." })] }) }) }));
++        return (_jsx("div", { className: cn("min-h-screen flex items-center justify-center p-4", className), children: _jsx(Card, { className: "w-full max-w-md", children: _jsxs(CardContent, { className: "flex flex-col items-center justify-center gap-2 py-8", children: [_jsx("span", { className: "text-muted-foreground", children: LoadingIcon }), _jsx("p", { className: "text-sm text-muted-foreground", children: "Carregando convite..." })] }) }) }));
+     }
+     // Not found state
+     if (!invitation) {
+-        return (_jsx("div", { className: cn("min-h-screen flex items-center justify-center p-4", className), children: _jsxs(Card, { className: "w-full max-w-md", children: [_jsxs(CardHeader, { children: [_jsxs("div", { className: "flex items-center gap-2 text-destructive", children: [ErrorIcon, _jsx(CardTitle, { children: "Invitation Not Found" })] }), _jsx(CardDescription, { children: "This invitation link is invalid or has been removed." })] }), _jsx(CardContent, { children: _jsx(Button, { onClick: onNavigateHome, className: "w-full", children: "Go to Home" }) })] }) }));
++        return (_jsx("div", { className: cn("min-h-screen flex items-center justify-center p-4", className), children: _jsxs(Card, { className: "w-full max-w-md", children: [_jsxs(CardHeader, { children: [_jsxs("div", { className: "flex items-center gap-2 text-destructive", children: [ErrorIcon, _jsx(CardTitle, { children: "Convite não encontrado" })] }), _jsx(CardDescription, { children: "Este link de convite é inválido ou foi removido." })] }), _jsx(CardContent, { children: _jsx(Button, { onClick: onNavigateHome, className: "w-full", children: "Ir para o início" }) })] }) }));
+     }
+     // Accepted success state
+     if (accepted) {
+-        return (_jsx("div", { className: cn("min-h-screen flex items-center justify-center p-4", className), children: _jsxs(Card, { className: "w-full max-w-md", children: [_jsxs(CardHeader, { children: [_jsxs("div", { className: "flex items-center gap-2 text-green-600 dark:text-green-400", children: [CheckIcon, _jsx(CardTitle, { children: "Welcome Aboard!" })] }), _jsxs(CardDescription, { children: ["You've successfully joined ", organizationName || "the organization", ". Redirecting to dashboard..."] })] }), _jsx(CardContent, { className: "flex items-center justify-center py-4", children: _jsx("span", { className: "text-muted-foreground", children: LoadingIcon }) })] }) }));
++        return (_jsx("div", { className: cn("min-h-screen flex items-center justify-center p-4", className), children: _jsxs(Card, { className: "w-full max-w-md", children: [_jsxs(CardHeader, { children: [_jsxs("div", { className: "flex items-center gap-2 text-green-600 dark:text-green-400", children: [CheckIcon, _jsx(CardTitle, { children: "Boas-vindas!" })] }), _jsxs(CardDescription, { children: ["Você entrou em ", organizationName || "a organização", ". Abrindo o painel..."] })] }), _jsx(CardContent, { className: "flex items-center justify-center py-4", children: _jsx("span", { className: "text-muted-foreground", children: LoadingIcon }) })] }) }));
+     }
+     // Declined success state
+     if (declined) {
+-        return (_jsx("div", { className: cn("min-h-screen flex items-center justify-center p-4", className), children: _jsxs(Card, { className: "w-full max-w-md", children: [_jsxs(CardHeader, { children: [_jsx(CardTitle, { children: "Invitation Declined" }), _jsxs(CardDescription, { children: ["You've declined the invitation to ", organizationName || "the organization", ". Redirecting..."] })] }), _jsx(CardContent, { className: "flex items-center justify-center py-4", children: _jsx("span", { className: "text-muted-foreground", children: LoadingIcon }) })] }) }));
++        return (_jsx("div", { className: cn("min-h-screen flex items-center justify-center p-4", className), children: _jsxs(Card, { className: "w-full max-w-md", children: [_jsxs(CardHeader, { children: [_jsx(CardTitle, { children: "Convite recusado" }), _jsxs(CardDescription, { children: ["Você recusou o convite para ", organizationName || "a organização", ". Redirecionando..."] })] }), _jsx(CardContent, { className: "flex items-center justify-center py-4", children: _jsx("span", { className: "text-muted-foreground", children: LoadingIcon }) })] }) }));
+     }
+     // Organization details block (reused in unauth + ready states)
+-    const orgDetails = (_jsx("div", { className: "rounded-lg bg-muted p-4", children: _jsxs("div", { className: "flex items-start gap-3", children: [_jsx("span", { className: "text-primary", children: BuildingIcon }), _jsxs("div", { className: "flex-1", children: [_jsx("p", { className: "text-lg font-semibold", children: organizationName || "Loading..." }), _jsxs("p", { className: "mt-1 text-sm text-muted-foreground", children: ["Role: ", _jsx("span", { className: "font-medium capitalize", children: invitation.role })] }), invitation.inviteeIdentifier && (_jsxs("p", { className: "text-sm text-muted-foreground", children: ["Invited as: ", _jsx("span", { className: "font-medium", children: invitation.inviteeIdentifier })] }))] })] }) }));
++    const orgDetails = (_jsx("div", { className: "rounded-lg bg-muted p-4", children: _jsxs("div", { className: "flex items-start gap-3", children: [_jsx("span", { className: "text-primary", children: BuildingIcon }), _jsxs("div", { className: "flex-1", children: [_jsx("p", { className: "text-lg font-semibold", children: organizationName || "Carregando..." }), _jsxs("p", { className: "mt-1 text-sm text-muted-foreground", children: ["Papel: ", _jsx("span", { className: "font-medium capitalize", children: ({ member: "Membro", admin: "Administrador", owner: "Proprietário" })[invitation.role] ?? invitation.role })] }), invitation.inviteeIdentifier && (_jsxs("p", { className: "text-sm text-muted-foreground", children: ["Convidado como: ", _jsx("span", { className: "font-medium", children: invitation.inviteeIdentifier })] }))] })] }) }));
+     // Unauthenticated state
+     if (!isAuthenticated) {
+-        return (_jsx("div", { className: cn("min-h-screen flex items-center justify-center p-4", className), children: _jsxs(Card, { className: "w-full max-w-md", children: [_jsxs(CardHeader, { children: [_jsx(CardTitle, { children: "You're Invited!" }), _jsx(CardDescription, { children: "Sign in to accept your invitation." })] }), _jsxs(CardContent, { className: "space-y-4", children: [orgDetails, _jsxs("div", { className: "space-y-2", children: [_jsx(Button, { onClick: onNavigateToLogin, className: "w-full", children: "Sign in to Accept" }), _jsx(Button, { variant: "ghost", onClick: onDecline, className: "w-full", children: "Decline" })] })] })] }) }));
++        return (_jsx("div", { className: cn("min-h-screen flex items-center justify-center p-4", className), children: _jsxs(Card, { className: "w-full max-w-md", children: [_jsxs(CardHeader, { children: [_jsx(CardTitle, { children: "Você foi convidado!" }), _jsx(CardDescription, { children: "Entre para aceitar o convite." })] }), _jsxs(CardContent, { className: "space-y-4", children: [orgDetails, _jsxs("div", { className: "space-y-2", children: [_jsx(Button, { onClick: onNavigateToLogin, className: "w-full", children: "Entrar para aceitar" }), _jsx(Button, { variant: "ghost", onClick: onDecline, className: "w-full", children: "Recusar" })] })] })] }) }));
+     }
+     // Error state
+     if (error) {
+-        return (_jsx("div", { className: cn("min-h-screen flex items-center justify-center p-4", className), children: _jsxs(Card, { className: "w-full max-w-md", children: [_jsxs(CardHeader, { children: [_jsxs("div", { className: "flex items-center gap-2 text-destructive", children: [ErrorIcon, _jsx(CardTitle, { children: "Error" })] }), _jsx(CardDescription, { children: error })] }), _jsxs(CardContent, { className: "space-y-2", children: [_jsx(Button, { onClick: onAccept, disabled: isAccepting, className: "w-full", children: isAccepting ? (_jsxs("span", { className: "flex items-center justify-center gap-2", children: [LoadingIcon, "Trying again..."] })) : ("Try Again") }), _jsx(Button, { variant: "outline", onClick: onNavigateHome, className: "w-full", children: "Go to Home" })] })] }) }));
++        return (_jsx("div", { className: cn("min-h-screen flex items-center justify-center p-4", className), children: _jsxs(Card, { className: "w-full max-w-md", children: [_jsxs(CardHeader, { children: [_jsxs("div", { className: "flex items-center gap-2 text-destructive", children: [ErrorIcon, _jsx(CardTitle, { children: "Erro" })] }), _jsx(CardDescription, { children: error })] }), _jsxs(CardContent, { className: "space-y-2", children: [_jsx(Button, { onClick: onAccept, disabled: isAccepting, className: "w-full", children: isAccepting ? (_jsxs("span", { className: "flex items-center justify-center gap-2", children: [LoadingIcon, "Tentando de novo..."] })) : ("Tentar de novo") }), _jsx(Button, { variant: "outline", onClick: onNavigateHome, className: "w-full", children: "Ir para o início" })] })] }) }));
+     }
+     // Default: ready to accept
+-    return (_jsx("div", { className: cn("min-h-screen flex items-center justify-center p-4", className), children: _jsxs(Card, { className: "w-full max-w-md", children: [_jsxs(CardHeader, { children: [_jsx(CardTitle, { children: "You're Invited!" }), _jsx(CardDescription, { children: "You've been invited to join an organization." })] }), _jsxs(CardContent, { className: "space-y-4", children: [orgDetails, _jsxs("div", { className: "space-y-2", children: [_jsx(Button, { onClick: onAccept, disabled: isAccepting || isDeclining, className: "w-full", children: isAccepting ? (_jsxs("span", { className: "flex items-center justify-center gap-2", children: [LoadingIcon, "Accepting..."] })) : ("Accept Invitation") }), _jsx(Button, { variant: "ghost", onClick: onDecline, disabled: isAccepting || isDeclining, className: "w-full", children: isDeclining ? (_jsxs("span", { className: "flex items-center justify-center gap-2", children: [LoadingIcon, "Declining..."] })) : ("Decline") })] })] })] }) }));
++    return (_jsx("div", { className: cn("min-h-screen flex items-center justify-center p-4", className), children: _jsxs(Card, { className: "w-full max-w-md", children: [_jsxs(CardHeader, { children: [_jsx(CardTitle, { children: "Você foi convidado!" }), _jsx(CardDescription, { children: "Você foi convidado para entrar em uma organização." })] }), _jsxs(CardContent, { className: "space-y-4", children: [orgDetails, _jsxs("div", { className: "space-y-2", children: [_jsx(Button, { onClick: onAccept, disabled: isAccepting || isDeclining, className: "w-full", children: isAccepting ? (_jsxs("span", { className: "flex items-center justify-center gap-2", children: [LoadingIcon, "Aceitando..."] })) : ("Aceitar convite") }), _jsx(Button, { variant: "ghost", onClick: onDecline, disabled: isAccepting || isDeclining, className: "w-full", children: isDeclining ? (_jsxs("span", { className: "flex items-center justify-center gap-2", children: [LoadingIcon, "Recusando..."] })) : ("Recusar") })] })] })] }) }));
+ }
+ //# sourceMappingURL=invitation-accept.js.map
+\ No newline at end of file
+diff --git a/dist/react/components/members-invite-dialog.js b/dist/react/components/members-invite-dialog.js
+index dfe831572ef35cf1be3db060876ed02c3ca8edf4..c66cc2ec039b2b2cc4f432254909001e299cdb45 100644
+--- a/dist/react/components/members-invite-dialog.js
++++ b/dist/react/components/members-invite-dialog.js
+@@ -27,7 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "
+  * }
+  * ```
+  */
+-export function InviteMemberDialog({ organizationName, teams, showTeamSelection = true, showInvitationLink = true, invitationPath = "/accept-invitation/:id", onInvite, baseUrl, trigger, className, mailIcon, copyIcon, checkIcon, linkIcon, onToast, expirationText = "48 hours", identifierType = "email", identifierLabel = "Email Address", identifierPlaceholder = "colleague@example.com", }) {
++export function InviteMemberDialog({ organizationName, teams, showTeamSelection = true, showInvitationLink = true, invitationPath = "/accept-invitation/:id", onInvite, baseUrl, trigger, className, mailIcon, copyIcon, checkIcon, linkIcon, onToast, expirationText = "48 horas", identifierType = "email", identifierLabel = "E-mail", identifierPlaceholder = "nome@hospital.com.br", }) {
+     const [open, setOpen] = useState(false);
+     const [inviteeIdentifier, setInviteeIdentifier] = useState("");
+     const [role, setRole] = useState("member");
+@@ -55,16 +55,16 @@ export function InviteMemberDialog({ organizationName, teams, showTeamSelection
+             });
+             if (result && result.invitationId) {
+                 setInvitationId(result.invitationId);
+-                onToast?.("Invitation created successfully!", "success");
++                onToast?.("Convite criado!", "success");
+             }
+             else if (!showInvitationLink) {
+                 handleClose();
+-                onToast?.("Invitation sent successfully!", "success");
++                onToast?.("Convite enviado!", "success");
+             }
+         }
+         catch (err) {
+-            setError(err.message || "Failed to invite member");
+-            onToast?.(err.message || "Failed to invite member", "error");
++            setError(err.message || "Não foi possível convidar o membro");
++            onToast?.(err.message || "Não foi possível convidar o membro", "error");
+         }
+         finally {
+             setIsInviting(false);
+@@ -78,11 +78,11 @@ export function InviteMemberDialog({ organizationName, teams, showTeamSelection
+             try {
+                 await navigator.clipboard.writeText(invitationLink);
+                 setCopied(true);
+-                onToast?.("Invitation link copied to clipboard!", "success");
++                onToast?.("Link do convite copiado!", "success");
+                 setTimeout(() => setCopied(false), 2000);
+             }
+             catch {
+-                prompt("Copy this invitation link:", invitationLink);
++                prompt("Copie este link de convite:", invitationLink);
+             }
+         }
+     };
+@@ -95,12 +95,12 @@ export function InviteMemberDialog({ organizationName, teams, showTeamSelection
+         setError(null);
+         setCopied(false);
+     };
+-    return (_jsxs(Dialog, { open: open, onOpenChange: (v) => (v ? setOpen(true) : handleClose()), children: [_jsx(DialogTrigger, { asChild: true, children: _jsx("div", { className: className, children: trigger || (_jsxs(Button, { children: [MailIcon, _jsx("span", { children: "Invite Member" })] })) }) }), _jsxs(DialogContent, { className: "sm:max-w-[500px]", children: [_jsxs(DialogHeader, { children: [_jsx(DialogTitle, { children: "Invite Member" }), _jsxs(DialogDescription, { children: ["Invite a new member to ", organizationName, ". They'll receive an invitation link to join."] })] }), !invitationLink ? (_jsxs(_Fragment, { children: [_jsxs("div", { className: "space-y-4 py-2", children: [_jsxs("div", { className: "space-y-2", children: [_jsx(Label, { htmlFor: "inviteeIdentifier", children: identifierLabel }), _jsx(Input, { id: "inviteeIdentifier", type: identifierType === "email" ? "email" : identifierType === "phone" ? "tel" : "text", placeholder: identifierPlaceholder, value: inviteeIdentifier, onChange: (e) => setInviteeIdentifier(e.target.value), disabled: isInviting })] }), _jsxs("div", { className: "space-y-2", children: [_jsx(Label, { htmlFor: "role", children: "Role" }), _jsxs(Select, { value: role, onValueChange: (v) => setRole(v), disabled: isInviting, children: [_jsx(SelectTrigger, { id: "role", children: _jsx(SelectValue, {}) }), _jsxs(SelectContent, { children: [_jsx(SelectItem, { value: "member", children: "Member" }), _jsx(SelectItem, { value: "admin", children: "Admin" })] })] }), _jsx("p", { className: "text-sm text-muted-foreground", children: role === "admin"
+-                                                    ? "Admins can invite members and manage teams"
+-                                                    : "Members have basic access to the organization" })] }), shouldShowTeams && (_jsxs("div", { className: "space-y-2", children: [_jsx(Label, { htmlFor: "team", children: "Team (Optional)" }), _jsxs(Select, { value: teamId ?? "none", onValueChange: (v) => setTeamId(v === "none" ? undefined : v), disabled: isInviting, children: [_jsx(SelectTrigger, { id: "team", children: _jsx(SelectValue, { placeholder: "Select a team" }) }), _jsxs(SelectContent, { children: [_jsx(SelectItem, { value: "none", children: "No team" }), teams.map((team) => (_jsx(SelectItem, { value: team._id, children: team.name }, team._id)))] })] }), _jsx("p", { className: "text-sm text-muted-foreground", children: "Assign the new member to a team immediately" })] })), error && (_jsx("p", { className: "text-sm text-destructive", role: "alert", children: error }))] }), _jsxs(DialogFooter, { children: [_jsx(Button, { variant: "outline", onClick: handleClose, disabled: isInviting, children: "Cancel" }), _jsx(Button, { onClick: handleInvite, disabled: isInviting || !inviteeIdentifier, children: isInviting ? "Creating..." : "Create Invitation" })] })] })) : (_jsxs(_Fragment, { children: [_jsxs("div", { className: "space-y-4 py-2", children: [_jsxs("div", { className: "py-2 text-center", children: [_jsx("div", { className: "mb-3 inline-flex size-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30", children: _jsx(Check, { className: "size-6 text-green-600 dark:text-green-400" }) }), _jsx("p", { className: "font-medium", children: "Invitation Created!" }), _jsxs("p", { className: "mt-1 text-sm text-muted-foreground", children: ["An invitation has been created for ", _jsx("strong", { children: inviteeIdentifier })] })] }), _jsxs("div", { className: "rounded-lg border bg-muted/50 p-4", children: [_jsx(Label, { className: "mb-2 block text-xs", children: "Invitation Link" }), _jsxs("div", { className: "flex items-center gap-2", children: [_jsxs("div", { className: "flex flex-1 items-center gap-2 overflow-hidden rounded-md border bg-background p-2", children: [_jsx("span", { className: "flex-shrink-0 text-muted-foreground", children: LinkLinkIcon }), _jsx("code", { className: "truncate text-sm", children: invitationLink })] }), _jsx(Button, { variant: copied ? "secondary" : "default", size: "icon", onClick: handleCopyLink, "aria-label": copied ? "Copied!" : "Copy link", className: cn(copied && "bg-green-100 text-green-600 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400"), children: copied ? CheckIcon : CopyIcon })] }), _jsxs("p", { className: "mt-2 text-xs text-muted-foreground", children: ["Share this link with the invitee. It expires in ", expirationText, "."] })] })] }), _jsxs(DialogFooter, { className: "sm:justify-between", children: [_jsx(Button, { variant: "outline", onClick: () => {
++    return (_jsxs(Dialog, { open: open, onOpenChange: (v) => (v ? setOpen(true) : handleClose()), children: [_jsx(DialogTrigger, { asChild: true, children: _jsx("div", { className: className, children: trigger || (_jsxs(Button, { children: [MailIcon, _jsx("span", { children: "Convidar membro" })] })) }) }), _jsxs(DialogContent, { className: "sm:max-w-[500px]", children: [_jsxs(DialogHeader, { children: [_jsx(DialogTitle, { children: "Convidar membro" }), _jsxs(DialogDescription, { children: ["Convide um novo membro para ", organizationName, ". A pessoa receberá um link de convite para entrar."] })] }), !invitationLink ? (_jsxs(_Fragment, { children: [_jsxs("div", { className: "space-y-4 py-2", children: [_jsxs("div", { className: "space-y-2", children: [_jsx(Label, { htmlFor: "inviteeIdentifier", children: identifierLabel }), _jsx(Input, { id: "inviteeIdentifier", type: identifierType === "email" ? "email" : identifierType === "phone" ? "tel" : "text", placeholder: identifierPlaceholder, value: inviteeIdentifier, onChange: (e) => setInviteeIdentifier(e.target.value), disabled: isInviting })] }), _jsxs("div", { className: "space-y-2", children: [_jsx(Label, { htmlFor: "role", children: "Papel" }), _jsxs(Select, { value: role, onValueChange: (v) => setRole(v), disabled: isInviting, children: [_jsx(SelectTrigger, { id: "role", children: _jsx(SelectValue, {}) }), _jsxs(SelectContent, { children: [_jsx(SelectItem, { value: "member", children: "Membro" }), _jsx(SelectItem, { value: "admin", children: "Administrador" })] })] }), _jsx("p", { className: "text-sm text-muted-foreground", children: role === "admin"
++                                                    ? "Administradores podem convidar membros e gerenciar times"
++                                                    : "Membros têm acesso básico à organização" })] }), shouldShowTeams && (_jsxs("div", { className: "space-y-2", children: [_jsx(Label, { htmlFor: "team", children: "Time (opcional)" }), _jsxs(Select, { value: teamId ?? "none", onValueChange: (v) => setTeamId(v === "none" ? undefined : v), disabled: isInviting, children: [_jsx(SelectTrigger, { id: "team", children: _jsx(SelectValue, { placeholder: "Selecione um time" }) }), _jsxs(SelectContent, { children: [_jsx(SelectItem, { value: "none", children: "Sem time" }), teams.map((team) => (_jsx(SelectItem, { value: team._id, children: team.name }, team._id)))] })] }), _jsx("p", { className: "text-sm text-muted-foreground", children: "Coloque o novo membro em um time agora" })] })), error && (_jsx("p", { className: "text-sm text-destructive", role: "alert", children: error }))] }), _jsxs(DialogFooter, { children: [_jsx(Button, { variant: "outline", onClick: handleClose, disabled: isInviting, children: "Cancelar" }), _jsx(Button, { onClick: handleInvite, disabled: isInviting || !inviteeIdentifier, children: isInviting ? "Criando..." : "Criar convite" })] })] })) : (_jsxs(_Fragment, { children: [_jsxs("div", { className: "space-y-4 py-2", children: [_jsxs("div", { className: "py-2 text-center", children: [_jsx("div", { className: "mb-3 inline-flex size-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30", children: _jsx(Check, { className: "size-6 text-green-600 dark:text-green-400" }) }), _jsx("p", { className: "font-medium", children: "Convite criado!" }), _jsxs("p", { className: "mt-1 text-sm text-muted-foreground", children: ["Um convite foi criado para ", _jsx("strong", { children: inviteeIdentifier })] })] }), _jsxs("div", { className: "rounded-lg border bg-muted/50 p-4", children: [_jsx(Label, { className: "mb-2 block text-xs", children: "Link do convite" }), _jsxs("div", { className: "flex items-center gap-2", children: [_jsxs("div", { className: "flex flex-1 items-center gap-2 overflow-hidden rounded-md border bg-background p-2", children: [_jsx("span", { className: "flex-shrink-0 text-muted-foreground", children: LinkLinkIcon }), _jsx("code", { className: "truncate text-sm", children: invitationLink })] }), _jsx(Button, { variant: copied ? "secondary" : "default", size: "icon", onClick: handleCopyLink, "aria-label": copied ? "Copiado!" : "Copiar link", className: cn(copied && "bg-green-100 text-green-600 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400"), children: copied ? CheckIcon : CopyIcon })] }), _jsxs("p", { className: "mt-2 text-xs text-muted-foreground", children: ["Envie este link para a pessoa convidada. Ele expira em ", expirationText, "."] })] })] }), _jsxs(DialogFooter, { className: "sm:justify-between", children: [_jsx(Button, { variant: "outline", onClick: () => {
+                                             setInvitationId(null);
+                                             setInviteeIdentifier("");
+                                             setCopied(false);
+-                                        }, children: "Invite Another" }), _jsx(Button, { onClick: handleClose, children: "Done" })] })] }))] })] }));
++                                        }, children: "Convidar outra pessoa" }), _jsx(Button, { onClick: handleClose, children: "Concluir" })] })] }))] })] }));
+ }
+ //# sourceMappingURL=members-invite-dialog.js.map
+\ No newline at end of file
+diff --git a/dist/react/components/members-table.js b/dist/react/components/members-table.js
+index 483938646c8a8b41ab5cc3d923e2d5482cf6454b..5f08e8a5945165ff65dfc92b0352ec7c05485e12 100644
+--- a/dist/react/components/members-table.js
++++ b/dist/react/components/members-table.js
+@@ -55,11 +55,11 @@ export function MembersTable({ members, invitations, teams, isLoading = false, i
+             const success = await copyToClipboard(link);
+             if (success) {
+                 setCopiedId(invitationId);
+-                onToast?.("Invitation link copied!", "success");
++                onToast?.("Link do convite copiado!", "success");
+                 setTimeout(() => setCopiedId(null), 2000);
+             }
+             else {
+-                onToast?.("Failed to copy link", "error");
++                onToast?.("Não foi possível copiar o link", "error");
+             }
+         }
+     };
+@@ -76,24 +76,24 @@ export function MembersTable({ members, invitations, teams, isLoading = false, i
+     const description = useMemo(() => {
+         const parts = [];
+         if (activeCount > 0)
+-            parts.push(`${activeCount} active`);
++            parts.push(`${activeCount} ativos`);
+         if (suspendedCount > 0)
+-            parts.push(`${suspendedCount} suspended`);
++            parts.push(`${suspendedCount} suspensos`);
+         if (pendingCount > 0)
+-            parts.push(`${pendingCount} pending`);
++            parts.push(`${pendingCount} pendentes`);
+         if (filter === "all")
+-            return `${totalCount} people${parts.length > 0 ? ` (${parts.join(", ")})` : ""}`;
++            return `${totalCount} pessoas${parts.length > 0 ? ` (${parts.join(", ")})` : ""}`;
+         if (filter === "active")
+-            return `${activeCount} active member${activeCount !== 1 ? "s" : ""}`;
++            return `${activeCount} ${activeCount !== 1 ? "membros ativos" : "membro ativo"}`;
+         if (filter === "suspended")
+-            return `${suspendedCount} suspended member${suspendedCount !== 1 ? "s" : ""}`;
+-        return `${pendingCount} pending invitation${pendingCount !== 1 ? "s" : ""}`;
++            return `${suspendedCount} ${suspendedCount !== 1 ? "membros suspensos" : "membro suspenso"}`;
++        return `${pendingCount} ${pendingCount !== 1 ? "convites pendentes" : "convite pendente"}`;
+     }, [filter, totalCount, activeCount, suspendedCount, pendingCount]);
+     const toUnifiedMember = (member) => ({
+         type: "member",
+         _id: member._id,
+         email: member.user?.email || "",
+-        name: member.user?.name || member.user?.email || "Unknown",
++        name: member.user?.name || member.user?.email || "Desconhecido",
+         role: member.role,
+         status: member.status ?? "active",
+         teams: member.teams || [],
+@@ -128,38 +128,38 @@ export function MembersTable({ members, invitations, teams, isLoading = false, i
+     const handleRemoveMember = async (memberUserId) => {
+         try {
+             await onRemoveMember?.(memberUserId);
+-            onToast?.("Member removed successfully", "success");
++            onToast?.("Membro removido", "success");
+         }
+         catch (error) {
+-            onToast?.(error.message || "Failed to remove member", "error");
++            onToast?.(error.message || "Não foi possível remover o membro", "error");
+         }
+     };
+     const handleUpdateRole = async (memberUserId, role) => {
+         try {
+             await onUpdateMemberRole?.(memberUserId, role);
+-            onToast?.("Role updated successfully", "success");
++            onToast?.("Papel atualizado", "success");
+         }
+         catch (error) {
+-            onToast?.(error.message || "Failed to update role", "error");
++            onToast?.(error.message || "Não foi possível atualizar o papel", "error");
+         }
+     };
+     const handleAddToTeam = async (userId, teamId) => {
+         try {
+             await onAddToTeam?.(userId, teamId);
+-            onToast?.("Member added to team", "success");
++            onToast?.("Membro adicionado ao time", "success");
+         }
+         catch (error) {
+-            onToast?.(error.message || "Failed to add to team", "error");
++            onToast?.(error.message || "Não foi possível adicionar ao time", "error");
+         }
+     };
+     const handleResendInvitation = async (invitationId) => {
+         setResendingId(invitationId);
+         try {
+             await onResendInvitation?.(invitationId);
+-            onToast?.("Invitation resent successfully", "success");
++            onToast?.("Convite reenviado", "success");
+         }
+         catch (error) {
+-            onToast?.(error.message || "Failed to resend invitation", "error");
++            onToast?.(error.message || "Não foi possível reenviar o convite", "error");
+         }
+         finally {
+             setResendingId(null);
+@@ -168,45 +168,45 @@ export function MembersTable({ members, invitations, teams, isLoading = false, i
+     const handleCancelInvitation = async (invitationId) => {
+         try {
+             await onCancelInvitation?.(invitationId);
+-            onToast?.("Invitation cancelled successfully", "success");
++            onToast?.("Convite cancelado", "success");
+         }
+         catch (error) {
+-            onToast?.(error.message || "Failed to cancel invitation", "error");
++            onToast?.(error.message || "Não foi possível cancelar o convite", "error");
+         }
+     };
+     const getStatusBadge = (status, isExpired) => {
+         if (status === "pending" && !isExpired)
+-            return _jsx(Badge, { variant: "outline", className: "border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-950 dark:text-yellow-400", children: "Pending" });
++            return _jsx(Badge, { variant: "outline", className: "border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-950 dark:text-yellow-400", children: "Pendente" });
+         if (status === "declined")
+-            return _jsx(Badge, { variant: "outline", className: "border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-950 dark:text-orange-400", children: "Declined" });
++            return _jsx(Badge, { variant: "outline", className: "border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-950 dark:text-orange-400", children: "Recusado" });
+         if (status === "cancelled")
+-            return _jsx(Badge, { variant: "outline", className: "border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400", children: "Cancelled" });
++            return _jsx(Badge, { variant: "outline", className: "border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400", children: "Cancelado" });
+         if (status === "accepted")
+-            return _jsx(Badge, { variant: "outline", className: "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-400", children: "Accepted" });
++            return _jsx(Badge, { variant: "outline", className: "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-400", children: "Aceito" });
+         if (status === "expired" || isExpired)
+-            return _jsx(Badge, { variant: "outline", className: "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400", children: "Expired" });
++            return _jsx(Badge, { variant: "outline", className: "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400", children: "Expirado" });
+         return null;
+     };
+     const getRoleBadge = (role) => {
+         if (role === "owner")
+-            return _jsx(Badge, { variant: "outline", className: "border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950 dark:text-purple-400", children: "Owner" });
++            return _jsx(Badge, { variant: "outline", className: "border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950 dark:text-purple-400", children: "Proprietário" });
+         if (role === "admin")
+-            return _jsx(Badge, { variant: "outline", className: "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-400", children: "Admin" });
+-        return _jsx(Badge, { variant: "outline", className: "border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400", children: "Member" });
++            return _jsx(Badge, { variant: "outline", className: "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-400", children: "Administrador" });
++        return _jsx(Badge, { variant: "outline", className: "border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400", children: "Membro" });
+     };
+     if (isLoading) {
+-        return (_jsxs("div", { className: className, children: [_jsxs("div", { className: "mb-4 flex items-center gap-4", children: [_jsx(Skeleton, { className: "h-9 w-[180px]" }), _jsx(Skeleton, { className: "h-4 w-48" })] }), _jsx("div", { className: "overflow-hidden rounded-lg border", children: _jsxs(Table, { children: [_jsx(TableHeader, { children: _jsxs(TableRow, { className: "bg-muted/50 hover:bg-muted/50", children: [_jsx(TableHead, { className: "py-3 font-semibold", children: "Name / Email" }), _jsx(TableHead, { className: "py-3 font-semibold", children: "Status" }), _jsx(TableHead, { className: "py-3 font-semibold", children: "Role" }), _jsx(TableHead, { className: "py-3 font-semibold", children: "Teams" }), _jsx(TableHead, { className: "py-3 text-right font-semibold", children: "Actions" })] }) }), _jsx(TableBody, { children: Array.from({ length: 4 }).map((_, i) => (_jsxs(TableRow, { children: [_jsx(TableCell, { className: "py-3", children: _jsxs("div", { className: "flex flex-col gap-1.5", children: [_jsx(Skeleton, { className: "h-4 w-32" }), _jsx(Skeleton, { className: "h-3 w-44" })] }) }), _jsx(TableCell, { className: "py-3", children: _jsx(Skeleton, { className: "h-5 w-16 rounded-full" }) }), _jsx(TableCell, { className: "py-3", children: _jsx(Skeleton, { className: "h-5 w-16 rounded-full" }) }), _jsx(TableCell, { className: "py-3", children: _jsx(Skeleton, { className: "h-5 w-20 rounded-full" }) }), _jsx(TableCell, { className: "py-3 text-right", children: _jsx(Skeleton, { className: "ml-auto h-8 w-8 rounded-md" }) })] }, i))) })] }) })] }));
++        return (_jsxs("div", { className: className, children: [_jsxs("div", { className: "mb-4 flex items-center gap-4", children: [_jsx(Skeleton, { className: "h-9 w-[180px]" }), _jsx(Skeleton, { className: "h-4 w-48" })] }), _jsx("div", { className: "overflow-hidden rounded-lg border", children: _jsxs(Table, { children: [_jsx(TableHeader, { children: _jsxs(TableRow, { className: "bg-muted/50 hover:bg-muted/50", children: [_jsx(TableHead, { className: "py-3 font-semibold", children: "Nome / e-mail" }), _jsx(TableHead, { className: "py-3 font-semibold", children: "Situação" }), _jsx(TableHead, { className: "py-3 font-semibold", children: "Papel" }), _jsx(TableHead, { className: "py-3 font-semibold", children: "Times" }), _jsx(TableHead, { className: "py-3 text-right font-semibold", children: "Ações" })] }) }), _jsx(TableBody, { children: Array.from({ length: 4 }).map((_, i) => (_jsxs(TableRow, { children: [_jsx(TableCell, { className: "py-3", children: _jsxs("div", { className: "flex flex-col gap-1.5", children: [_jsx(Skeleton, { className: "h-4 w-32" }), _jsx(Skeleton, { className: "h-3 w-44" })] }) }), _jsx(TableCell, { className: "py-3", children: _jsx(Skeleton, { className: "h-5 w-16 rounded-full" }) }), _jsx(TableCell, { className: "py-3", children: _jsx(Skeleton, { className: "h-5 w-16 rounded-full" }) }), _jsx(TableCell, { className: "py-3", children: _jsx(Skeleton, { className: "h-5 w-20 rounded-full" }) }), _jsx(TableCell, { className: "py-3 text-right", children: _jsx(Skeleton, { className: "ml-auto h-8 w-8 rounded-md" }) })] }, i))) })] }) })] }));
+     }
+     // Row renderer for a member
+-    const renderMemberRow = (item) => (_jsxs(TableRow, { children: [_jsx(TableCell, { className: "py-3", children: _jsxs("div", { className: "flex flex-col gap-0.5", children: [_jsx("span", { className: "font-medium", children: item.name || item.email || "Unknown User" }), item.email && item.name && (_jsx("span", { className: "text-xs text-muted-foreground", children: item.email }))] }) }), _jsx(TableCell, { className: "py-3", children: item.status === "suspended" ? (_jsx(Badge, { variant: "outline", className: "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400", children: "Suspended" })) : (_jsx(Badge, { className: "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400", children: "Active" })) }), _jsx(TableCell, { className: "py-3", children: isOwner ? (_jsxs(Select, { value: item.role, onValueChange: (v) => handleUpdateRole(item.userId, v), children: [_jsx(SelectTrigger, { className: "h-7 w-[100px]", children: _jsx(SelectValue, {}) }), _jsx(SelectContent, { children: (roles ?? ["member", "admin", "owner"]).map((role) => (_jsx(SelectItem, { value: role, children: role }, role))) })] })) : (getRoleBadge(item.role)) }), _jsx(TableCell, { className: "py-3", children: item.teams && item.teams.length > 0 ? (_jsx("div", { className: "flex flex-wrap gap-1", children: item.teams.map((team) => (_jsx(Badge, { variant: "outline", className: "text-xs", children: team.name }, team._id))) })) : (_jsx("span", { className: "text-sm text-muted-foreground", children: "No teams" })) }), isOwnerOrAdmin && (_jsx(TableCell, { className: "py-3 text-right", children: _jsxs(DropdownMenu, { children: [_jsx(DropdownMenuTrigger, { asChild: true, children: _jsxs(Button, { variant: "ghost", size: "icon", children: [MoreIcon, _jsx("span", { className: "sr-only", children: "Open menu" })] }) }), _jsxs(DropdownMenuContent, { align: "end", children: [teams && teams.length > 0 && (_jsxs(_Fragment, { children: [_jsx(DropdownMenuLabel, { children: "Add to Team" }), teams.map((team) => (_jsx(DropdownMenuItem, { onClick: () => handleAddToTeam(item.userId, team._id), children: team.name }, team._id))), _jsx(DropdownMenuSeparator, {})] })), _jsxs(DropdownMenuItem, { onClick: () => handleRemoveMember(item.userId), disabled: item.role === "owner", className: "text-destructive focus:text-destructive", children: [UserMinusIcon, "Remove Member"] })] })] }) }))] }, `member-${item._id}`));
++    const renderMemberRow = (item) => (_jsxs(TableRow, { children: [_jsx(TableCell, { className: "py-3", children: _jsxs("div", { className: "flex flex-col gap-0.5", children: [_jsx("span", { className: "font-medium", children: item.name || item.email || "Usuário desconhecido" }), item.email && item.name && (_jsx("span", { className: "text-xs text-muted-foreground", children: item.email }))] }) }), _jsx(TableCell, { className: "py-3", children: item.status === "suspended" ? (_jsx(Badge, { variant: "outline", className: "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400", children: "Suspenso" })) : (_jsx(Badge, { className: "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400", children: "Ativo" })) }), _jsx(TableCell, { className: "py-3", children: isOwner ? (_jsxs(Select, { value: item.role, onValueChange: (v) => handleUpdateRole(item.userId, v), children: [_jsx(SelectTrigger, { className: "h-7 w-[100px]", children: _jsx(SelectValue, {}) }), _jsx(SelectContent, { children: (roles ?? ["member", "admin", "owner"]).map((role) => (_jsx(SelectItem, { value: role, children: ({ member: "Membro", admin: "Administrador", owner: "Proprietário" })[role] ?? role }, role))) })] })) : (getRoleBadge(item.role)) }), _jsx(TableCell, { className: "py-3", children: item.teams && item.teams.length > 0 ? (_jsx("div", { className: "flex flex-wrap gap-1", children: item.teams.map((team) => (_jsx(Badge, { variant: "outline", className: "text-xs", children: team.name }, team._id))) })) : (_jsx("span", { className: "text-sm text-muted-foreground", children: "Sem times" })) }), isOwnerOrAdmin && (_jsx(TableCell, { className: "py-3 text-right", children: _jsxs(DropdownMenu, { children: [_jsx(DropdownMenuTrigger, { asChild: true, children: _jsxs(Button, { variant: "ghost", size: "icon", children: [MoreIcon, _jsx("span", { className: "sr-only", children: "Abrir menu" })] }) }), _jsxs(DropdownMenuContent, { align: "end", children: [teams && teams.length > 0 && (_jsxs(_Fragment, { children: [_jsx(DropdownMenuLabel, { children: "Adicionar ao time" }), teams.map((team) => (_jsx(DropdownMenuItem, { onClick: () => handleAddToTeam(item.userId, team._id), children: team.name }, team._id))), _jsx(DropdownMenuSeparator, {})] })), _jsxs(DropdownMenuItem, { onClick: () => handleRemoveMember(item.userId), disabled: item.role === "owner", className: "text-destructive focus:text-destructive", children: [UserMinusIcon, "Remover membro"] })] })] }) }))] }, `member-${item._id}`));
+     // Row renderer for an invitation
+-    const renderInvitationRow = (item) => (_jsxs(TableRow, { className: "text-muted-foreground", children: [_jsx(TableCell, { className: "py-3 font-medium text-foreground", children: item.email }), _jsx(TableCell, { className: "py-3", children: getStatusBadge(item.status, item.isExpired) }), _jsx(TableCell, { className: "py-3", children: getRoleBadge(item.role) }), _jsx(TableCell, { className: "py-3", children: item.teamId ? (_jsx(Badge, { variant: "outline", className: "text-xs", children: "Team invited" })) : (_jsx("span", { className: "text-sm text-muted-foreground", children: "No team" })) }), isOwnerOrAdmin && (_jsx(TableCell, { className: "py-3 text-right", children: _jsxs("div", { className: "flex items-center justify-end gap-1", children: [item.status === "pending" && !item.isExpired && (_jsxs(_Fragment, { children: [_jsx(Button, { variant: "ghost", size: "icon-sm", onClick: () => handleResendInvitation(item._id), disabled: resendingId === item._id, "aria-label": "Resend invitation", children: _jsx("span", { className: resendingId === item._id ? "animate-spin" : "", children: RefreshIcon }) }), _jsx(Button, { variant: "ghost", size: "icon-sm", onClick: () => handleCopyLink(item._id), "aria-label": copiedId === item._id ? "Copied!" : "Copy invitation link", className: cn(copiedId === item._id &&
+-                                        "bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400"), children: copiedId === item._id ? CheckIcon : CopyIcon }), _jsx(Button, { variant: "ghost", size: "icon-sm", onClick: () => handleCancelInvitation(item._id), disabled: resendingId === item._id, "aria-label": "Cancel invitation", className: "text-red-500 hover:text-red-600 dark:text-red-400", children: CancelIcon })] })), (item.status === "cancelled" ||
++    const renderInvitationRow = (item) => (_jsxs(TableRow, { className: "text-muted-foreground", children: [_jsx(TableCell, { className: "py-3 font-medium text-foreground", children: item.email }), _jsx(TableCell, { className: "py-3", children: getStatusBadge(item.status, item.isExpired) }), _jsx(TableCell, { className: "py-3", children: getRoleBadge(item.role) }), _jsx(TableCell, { className: "py-3", children: item.teamId ? (_jsx(Badge, { variant: "outline", className: "text-xs", children: "Convidado para time" })) : (_jsx("span", { className: "text-sm text-muted-foreground", children: "Sem time" })) }), isOwnerOrAdmin && (_jsx(TableCell, { className: "py-3 text-right", children: _jsxs("div", { className: "flex items-center justify-end gap-1", children: [item.status === "pending" && !item.isExpired && (_jsxs(_Fragment, { children: [_jsx(Button, { variant: "ghost", size: "icon-sm", onClick: () => handleResendInvitation(item._id), disabled: resendingId === item._id, "aria-label": "Reenviar convite", children: _jsx("span", { className: resendingId === item._id ? "animate-spin" : "", children: RefreshIcon }) }), _jsx(Button, { variant: "ghost", size: "icon-sm", onClick: () => handleCopyLink(item._id), "aria-label": copiedId === item._id ? "Copiado!" : "Copiar link do convite", className: cn(copiedId === item._id &&
++                                        "bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400"), children: copiedId === item._id ? CheckIcon : CopyIcon }), _jsx(Button, { variant: "ghost", size: "icon-sm", onClick: () => handleCancelInvitation(item._id), disabled: resendingId === item._id, "aria-label": "Cancelar convite", className: "text-red-500 hover:text-red-600 dark:text-red-400", children: CancelIcon })] })), (item.status === "cancelled" ||
+                             item.status === "expired" ||
+-                            item.isExpired) && (_jsx(Button, { variant: "ghost", size: "icon-sm", onClick: () => handleCopyLink(item._id), "aria-label": copiedId === item._id ? "Copied!" : "Copy invitation link", className: cn(copiedId === item._id &&
++                            item.isExpired) && (_jsx(Button, { variant: "ghost", size: "icon-sm", onClick: () => handleCopyLink(item._id), "aria-label": copiedId === item._id ? "Copiado!" : "Copiar link do convite", className: cn(copiedId === item._id &&
+                                 "bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400"), children: copiedId === item._id ? CheckIcon : CopyIcon }))] }) }))] }, `invitation-${item._id}`));
+-    return (_jsxs("div", { className: className, children: [_jsxs("div", { className: "mb-4 flex items-center gap-4", children: [_jsxs(Select, { value: filter, onValueChange: (v) => setFilter(v), children: [_jsx(SelectTrigger, { className: "w-[180px]", children: _jsx(SelectValue, {}) }), _jsxs(SelectContent, { children: [_jsx(SelectItem, { value: "all", children: "All" }), _jsx(SelectItem, { value: "active", children: "Active" }), suspendedCount > 0 && (_jsx(SelectItem, { value: "suspended", children: "Suspended" })), pendingCount > 0 && (_jsx(SelectItem, { value: "pending", children: "Pending" }))] })] }), _jsx("span", { className: "text-sm text-muted-foreground", children: description })] }), _jsxs("div", { className: "overflow-hidden rounded-lg border", children: [_jsxs(Table, { children: [_jsx(TableHeader, { children: _jsxs(TableRow, { className: "bg-muted/50 hover:bg-muted/50", children: [_jsx(TableHead, { className: "py-3 font-semibold", children: "Name / Email" }), _jsx(TableHead, { className: "py-3 font-semibold", children: "Status" }), _jsx(TableHead, { className: "py-3 font-semibold", children: "Role" }), _jsx(TableHead, { className: "py-3 font-semibold", children: "Teams" }), isOwnerOrAdmin && (_jsx(TableHead, { className: "py-3 text-right font-semibold", children: "Actions" }))] }) }), _jsx(TableBody, { children: unifiedData.map((item) => item.type === "member"
++    return (_jsxs("div", { className: className, children: [_jsxs("div", { className: "mb-4 flex items-center gap-4", children: [_jsxs(Select, { value: filter, onValueChange: (v) => setFilter(v), children: [_jsx(SelectTrigger, { className: "w-[180px]", children: _jsx(SelectValue, {}) }), _jsxs(SelectContent, { children: [_jsx(SelectItem, { value: "all", children: "Todos" }), _jsx(SelectItem, { value: "active", children: "Ativo" }), suspendedCount > 0 && (_jsx(SelectItem, { value: "suspended", children: "Suspenso" })), pendingCount > 0 && (_jsx(SelectItem, { value: "pending", children: "Pendente" }))] })] }), _jsx("span", { className: "text-sm text-muted-foreground", children: description })] }), _jsxs("div", { className: "overflow-hidden rounded-lg border", children: [_jsxs(Table, { children: [_jsx(TableHeader, { children: _jsxs(TableRow, { className: "bg-muted/50 hover:bg-muted/50", children: [_jsx(TableHead, { className: "py-3 font-semibold", children: "Nome / e-mail" }), _jsx(TableHead, { className: "py-3 font-semibold", children: "Situação" }), _jsx(TableHead, { className: "py-3 font-semibold", children: "Papel" }), _jsx(TableHead, { className: "py-3 font-semibold", children: "Times" }), isOwnerOrAdmin && (_jsx(TableHead, { className: "py-3 text-right font-semibold", children: "Ações" }))] }) }), _jsx(TableBody, { children: unifiedData.map((item) => item.type === "member"
+                                     ? renderMemberRow(item)
+-                                    : renderInvitationRow(item)) })] }), unifiedData.length === 0 && (_jsxs("div", { className: "p-8 text-center text-muted-foreground", children: [filter === "all" && "No members or invitations found", filter === "active" && "No active members", filter === "suspended" && "No suspended members", filter === "pending" && "No pending invitations"] }))] })] }));
++                                    : renderInvitationRow(item)) })] }), unifiedData.length === 0 && (_jsxs("div", { className: "p-8 text-center text-muted-foreground", children: [filter === "all" && "Nenhum membro ou convite encontrado", filter === "active" && "Nenhum membro ativo", filter === "suspended" && "Nenhum membro suspenso", filter === "pending" && "Nenhum convite pendente"] }))] })] }));
+ }
+ //# sourceMappingURL=members-table.js.map
+\ No newline at end of file
+diff --git a/dist/react/components/org-settings-panel.js b/dist/react/components/org-settings-panel.js
+index bd942c67013d8ca64b6e3a0002ced173acd3447d..28309f33991462e7160574c0b0756a20c4b2947c 100644
+--- a/dist/react/components/org-settings-panel.js
++++ b/dist/react/components/org-settings-panel.js
+@@ -66,13 +66,13 @@ export function OrgSettingsPanel() {
+             const uploadUrl = await generateLogoUploadUrlMut();
+             const res = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": file.type }, body: file });
+             if (!res.ok) {
+-                throw new Error("Logo upload failed");
++                throw new Error("Falha ao enviar o logotipo");
+             }
+             const { storageId } = (await res.json());
+             await updateOrganization({ logo: storageId });
+         }
+         catch {
+-            onToast?.("Failed to upload logo", "error");
++            onToast?.("Não foi possível enviar o logotipo", "error");
+         }
+         finally {
+             setLogoUploading(false);
+@@ -112,10 +112,10 @@ export function OrgSettingsPanel() {
+         return null;
+     const isOwner = currentRole === "owner";
+     const otherMembers = members.filter((m) => m.userId !== currentMember?.userId);
+-    return (_jsxs("div", { className: "space-y-6", children: [a.generateLogoUploadUrl && (_jsxs("section", { className: "rounded-xl border bg-background p-6 shadow-sm", children: [_jsxs("h3", { className: "mb-4 flex items-center gap-2 text-lg font-semibold", children: [_jsx(Building2, { className: "size-5 text-primary" }), "Logo"] }), _jsx("p", { className: "mb-4 text-sm text-muted-foreground", children: "Upload an image to use as the organization logo. Stored in Convex file storage." }), _jsxs("div", { className: "flex flex-wrap items-center gap-3", children: [_jsxs("label", { htmlFor: "org-settings-logo-upload", className: "inline-flex h-10 cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent", children: [logoUploading ? _jsx(Loader2, { className: "size-4 animate-spin" }) : null, _jsx("input", { id: "org-settings-logo-upload", type: "file", accept: "image/*", className: "hidden", disabled: logoUploading, onChange: handleLogoUpload }), logoUploading ? "Uploading…" : "Upload logo"] }), currentOrganization.logo && (_jsx(Button, { type: "button", variant: "outline", onClick: () => updateOrganization({ logo: null }), children: "Clear logo" }))] })] })), _jsxs("section", { className: "rounded-xl border bg-background p-6 shadow-sm", children: [_jsxs("h3", { className: "mb-4 flex items-center gap-2 text-lg font-semibold", children: [_jsx(Pencil, { className: "size-5 text-primary" }), "Organization Details"] }), _jsxs("div", { className: "space-y-4", children: [_jsxs("div", { children: [_jsx("label", { htmlFor: "org-settings-name", className: "mb-1 block text-sm font-medium", children: "Name" }), _jsx(Input, { id: "org-settings-name", value: name, onChange: (e) => setName(e.target.value), className: "max-w-md" })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "org-settings-slug", className: "mb-1 block text-sm font-medium", children: "Slug" }), _jsx(Input, { id: "org-settings-slug", value: slug, onChange: (e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-")), className: "max-w-md" })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "org-settings-status", className: "mb-1 block text-sm font-medium", children: "Status" }), _jsxs(Select, { value: status, onValueChange: (v) => setStatus(v), children: [_jsx(SelectTrigger, { id: "org-settings-status", className: "max-w-md w-full", children: _jsx(SelectValue, {}) }), _jsxs(SelectContent, { children: [_jsx(SelectItem, { value: "active", children: "Active" }), _jsx(SelectItem, { value: "suspended", children: "Suspended" }), _jsx(SelectItem, { value: "archived", children: "Archived" })] })] }), _jsx("p", { className: "mt-1 text-xs text-muted-foreground", children: "Suspended/archived orgs block member mutations until set back to active." })] }), _jsxs(Button, { type: "button", onClick: handleSave, disabled: saving, children: [saving ? _jsx(Loader2, { className: "size-4 animate-spin" }) : saved ? _jsx(CheckCircle, { className: "size-4" }) : _jsx(Check, { className: "size-4" }), saving ? "Saving..." : saved ? "Saved!" : "Save Changes"] })] })] }), isOwner && a.transferOwnership && otherMembers.length > 0 && (_jsxs("section", { className: "rounded-xl border bg-background p-6 shadow-sm", children: [_jsxs("h3", { className: "mb-2 flex items-center gap-2 text-lg font-semibold", children: [_jsx(Crown, { className: "size-5 text-amber-500" }), "Transfer Ownership"] }), _jsx("p", { className: "mb-4 text-sm text-muted-foreground", children: "Make another member the owner. You will become an admin." }), _jsxs(Button, { type: "button", variant: "outline", onClick: () => setTransferOpen(true), className: "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/40", children: [_jsx(Crown, { className: "size-4" }), " Transfer ownership to another member"] }), _jsx(Dialog, { open: transferOpen, onOpenChange: setTransferOpen, children: _jsxs(DialogContent, { children: [_jsxs(DialogHeader, { children: [_jsx(DialogTitle, { children: "Transfer ownership" }), _jsx(DialogDescription, { children: "Choose a member to become the new owner. You will be demoted to admin." })] }), _jsxs("div", { className: "py-2", children: [_jsx("label", { htmlFor: "org-transfer-target", className: "mb-1 block text-sm font-medium", children: "New owner" }), _jsxs(Select, { value: transferTargetUserId, onValueChange: setTransferTargetUserId, children: [_jsx(SelectTrigger, { id: "org-transfer-target", className: "w-full", children: _jsx(SelectValue, { placeholder: "Select member" }) }), _jsx(SelectContent, { children: otherMembers.map((m) => (_jsxs(SelectItem, { value: m.userId, children: [m.user?.name ?? m.user?.email ?? m.userId, " (", m.role, ")"] }, m.userId))) })] })] }), _jsxs(DialogFooter, { children: [_jsx(Button, { variant: "outline", onClick: () => setTransferOpen(false), disabled: transferring, children: "Cancel" }), _jsxs(Button, { onClick: handleConfirmTransfer, disabled: !transferTargetUserId || transferring, className: "bg-amber-600 text-white hover:bg-amber-700", children: [transferring ? _jsx(Loader2, { className: "size-4 animate-spin" }) : null, "Confirm transfer"] })] })] }) })] })), _jsxs("section", { className: "rounded-xl border bg-background p-6 shadow-sm", children: [_jsxs("h3", { className: "mb-2 flex items-center gap-2 text-lg font-semibold", children: [_jsx(DoorOpen, { className: "size-5 text-orange-500" }), "Leave Organization"] }), _jsxs("p", { className: "mb-4 text-sm text-muted-foreground", children: ["Remove yourself from this organization. You'll lose access to all resources.", isOwner && " As the owner, you can only leave if there's another owner."] }), _jsxs(Button, { type: "button", variant: "outline", onClick: () => setLeaveOpen(true), className: "border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:border-amber-800 dark:bg-amber-900/20 dark:text-orange-400", children: [_jsx(DoorOpen, { className: "size-4" }), " Leave Organization"] }), _jsx(Dialog, { open: leaveOpen, onOpenChange: setLeaveOpen, children: _jsxs(DialogContent, { children: [_jsxs(DialogHeader, { children: [_jsx(DialogTitle, { children: "Leave organization?" }), _jsxs(DialogDescription, { children: ["You will lose access to all resources in ", currentOrganization.name, ". This action can only be undone by being re-invited."] })] }), _jsxs(DialogFooter, { children: [_jsx(Button, { variant: "outline", onClick: () => setLeaveOpen(false), children: "Cancel" }), _jsx(Button, { onClick: handleConfirmLeave, className: "bg-orange-600 text-white hover:bg-orange-700", children: "Yes, leave" })] })] }) })] }), isOwner && (_jsxs("section", { className: "rounded-xl border border-red-200 bg-background p-6 shadow-sm dark:border-red-900", children: [_jsxs("h3", { className: "mb-2 flex items-center gap-2 text-lg font-semibold text-red-600 dark:text-red-400", children: [_jsx(Trash2, { className: "size-5" }), " Danger Zone"] }), _jsx("p", { className: "mb-4 text-sm text-muted-foreground", children: "Permanently delete this organization, all members, teams, and invitations. This action cannot be undone." }), _jsxs(Button, { type: "button", variant: "destructive", onClick: () => setDeleteOpen(true), children: [_jsx(Trash2, { className: "size-4" }), " Delete Organization"] }), _jsx(Dialog, { open: deleteOpen, onOpenChange: (v) => {
++    return (_jsxs("div", { className: "space-y-6", children: [a.generateLogoUploadUrl && (_jsxs("section", { className: "rounded-xl border bg-background p-6 shadow-sm", children: [_jsxs("h3", { className: "mb-4 flex items-center gap-2 text-lg font-semibold", children: [_jsx(Building2, { className: "size-5 text-primary" }), "Logotipo"] }), _jsx("p", { className: "mb-4 text-sm text-muted-foreground", children: "Envie uma imagem para usar como logotipo da organização." }), _jsxs("div", { className: "flex flex-wrap items-center gap-3", children: [_jsxs("label", { htmlFor: "org-settings-logo-upload", className: "inline-flex h-10 cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent", children: [logoUploading ? _jsx(Loader2, { className: "size-4 animate-spin" }) : null, _jsx("input", { id: "org-settings-logo-upload", type: "file", accept: "image/*", className: "hidden", disabled: logoUploading, onChange: handleLogoUpload }), logoUploading ? "Enviando…" : "Enviar logotipo"] }), currentOrganization.logo && (_jsx(Button, { type: "button", variant: "outline", onClick: () => updateOrganization({ logo: null }), children: "Remover logotipo" }))] })] })), _jsxs("section", { className: "rounded-xl border bg-background p-6 shadow-sm", children: [_jsxs("h3", { className: "mb-4 flex items-center gap-2 text-lg font-semibold", children: [_jsx(Pencil, { className: "size-5 text-primary" }), "Dados da organização"] }), _jsxs("div", { className: "space-y-4", children: [_jsxs("div", { children: [_jsx("label", { htmlFor: "org-settings-name", className: "mb-1 block text-sm font-medium", children: "Nome" }), _jsx(Input, { id: "org-settings-name", value: name, onChange: (e) => setName(e.target.value), className: "max-w-md" })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "org-settings-slug", className: "mb-1 block text-sm font-medium", children: "Identificador (slug)" }), _jsx(Input, { id: "org-settings-slug", value: slug, onChange: (e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-")), className: "max-w-md" })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "org-settings-status", className: "mb-1 block text-sm font-medium", children: "Situação" }), _jsxs(Select, { value: status, onValueChange: (v) => setStatus(v), children: [_jsx(SelectTrigger, { id: "org-settings-status", className: "max-w-md w-full", children: _jsx(SelectValue, {}) }), _jsxs(SelectContent, { children: [_jsx(SelectItem, { value: "active", children: "Ativa" }), _jsx(SelectItem, { value: "suspended", children: "Suspensa" }), _jsx(SelectItem, { value: "archived", children: "Arquivada" })] })] }), _jsx("p", { className: "mt-1 text-xs text-muted-foreground", children: "Organizações suspensas ou arquivadas não permitem mudanças nos membros até voltarem a ficar ativas." })] }), _jsxs(Button, { type: "button", onClick: handleSave, disabled: saving, children: [saving ? _jsx(Loader2, { className: "size-4 animate-spin" }) : saved ? _jsx(CheckCircle, { className: "size-4" }) : _jsx(Check, { className: "size-4" }), saving ? "Salvando..." : saved ? "Salvo!" : "Salvar alterações"] })] })] }), isOwner && a.transferOwnership && otherMembers.length > 0 && (_jsxs("section", { className: "rounded-xl border bg-background p-6 shadow-sm", children: [_jsxs("h3", { className: "mb-2 flex items-center gap-2 text-lg font-semibold", children: [_jsx(Crown, { className: "size-5 text-amber-500" }), "Transferir propriedade"] }), _jsx("p", { className: "mb-4 text-sm text-muted-foreground", children: "Torne outro membro o proprietário. Você passará a ser administrador." }), _jsxs(Button, { type: "button", variant: "outline", onClick: () => setTransferOpen(true), className: "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/40", children: [_jsx(Crown, { className: "size-4" }), " Transferir a propriedade para outro membro"] }), _jsx(Dialog, { open: transferOpen, onOpenChange: setTransferOpen, children: _jsxs(DialogContent, { children: [_jsxs(DialogHeader, { children: [_jsx(DialogTitle, { children: "Transferir propriedade" }), _jsx(DialogDescription, { children: "Escolha o membro que será o novo proprietário. Você passará a ser administrador." })] }), _jsxs("div", { className: "py-2", children: [_jsx("label", { htmlFor: "org-transfer-target", className: "mb-1 block text-sm font-medium", children: "Novo proprietário" }), _jsxs(Select, { value: transferTargetUserId, onValueChange: setTransferTargetUserId, children: [_jsx(SelectTrigger, { id: "org-transfer-target", className: "w-full", children: _jsx(SelectValue, { placeholder: "Selecione um membro" }) }), _jsx(SelectContent, { children: otherMembers.map((m) => (_jsxs(SelectItem, { value: m.userId, children: [m.user?.name ?? m.user?.email ?? m.userId, " (", m.role, ")"] }, m.userId))) })] })] }), _jsxs(DialogFooter, { children: [_jsx(Button, { variant: "outline", onClick: () => setTransferOpen(false), disabled: transferring, children: "Cancelar" }), _jsxs(Button, { onClick: handleConfirmTransfer, disabled: !transferTargetUserId || transferring, className: "bg-amber-600 text-white hover:bg-amber-700", children: [transferring ? _jsx(Loader2, { className: "size-4 animate-spin" }) : null, "Confirmar transferência"] })] })] }) })] })), _jsxs("section", { className: "rounded-xl border bg-background p-6 shadow-sm", children: [_jsxs("h3", { className: "mb-2 flex items-center gap-2 text-lg font-semibold", children: [_jsx(DoorOpen, { className: "size-5 text-orange-500" }), "Sair da organização"] }), _jsxs("p", { className: "mb-4 text-sm text-muted-foreground", children: ["Saia desta organização. Você perderá o acesso a todos os recursos.", isOwner && " Como proprietário, você só pode sair se houver outro proprietário."] }), _jsxs(Button, { type: "button", variant: "outline", onClick: () => setLeaveOpen(true), className: "border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:border-amber-800 dark:bg-amber-900/20 dark:text-orange-400", children: [_jsx(DoorOpen, { className: "size-4" }), " Sair da organização"] }), _jsx(Dialog, { open: leaveOpen, onOpenChange: setLeaveOpen, children: _jsxs(DialogContent, { children: [_jsxs(DialogHeader, { children: [_jsx(DialogTitle, { children: "Sair da organização?" }), _jsxs(DialogDescription, { children: ["Você perderá o acesso a todos os recursos de ", currentOrganization.name, ". Para voltar, será preciso receber um novo convite."] })] }), _jsxs(DialogFooter, { children: [_jsx(Button, { variant: "outline", onClick: () => setLeaveOpen(false), children: "Cancelar" }), _jsx(Button, { onClick: handleConfirmLeave, className: "bg-orange-600 text-white hover:bg-orange-700", children: "Sim, sair" })] })] }) })] }), isOwner && (_jsxs("section", { className: "rounded-xl border border-red-200 bg-background p-6 shadow-sm dark:border-red-900", children: [_jsxs("h3", { className: "mb-2 flex items-center gap-2 text-lg font-semibold text-red-600 dark:text-red-400", children: [_jsx(Trash2, { className: "size-5" }), " Zona de perigo"] }), _jsx("p", { className: "mb-4 text-sm text-muted-foreground", children: "Excluir permanentemente esta organização, com todos os membros, times e convites. Esta ação não pode ser desfeita." }), _jsxs(Button, { type: "button", variant: "destructive", onClick: () => setDeleteOpen(true), children: [_jsx(Trash2, { className: "size-4" }), " Excluir organização"] }), _jsx(Dialog, { open: deleteOpen, onOpenChange: (v) => {
+                             setDeleteOpen(v);
+                             if (!v)
+                                 setDeleteConfirmValue("");
+-                        }, children: _jsxs(DialogContent, { children: [_jsxs(DialogHeader, { children: [_jsx(DialogTitle, { className: "text-red-600 dark:text-red-400", children: "Delete organization" }), _jsxs(DialogDescription, { children: ["This will permanently delete ", _jsx("strong", { children: currentOrganization.name }), ", all its members, teams, and invitations. This action cannot be undone."] })] }), _jsxs("div", { className: "py-2", children: [_jsxs("label", { htmlFor: "org-delete-confirm", className: "mb-1 block text-sm font-medium", children: ["Type \"", currentOrganization.name, "\" to confirm"] }), _jsx(Input, { id: "org-delete-confirm", value: deleteConfirmValue, onChange: (e) => setDeleteConfirmValue(e.target.value), placeholder: currentOrganization.name, className: "border-red-300 dark:border-red-800" })] }), _jsxs(DialogFooter, { children: [_jsx(Button, { variant: "outline", onClick: () => { setDeleteOpen(false); setDeleteConfirmValue(""); }, children: "Cancel" }), _jsxs(Button, { variant: "destructive", onClick: handleConfirmDelete, disabled: deleteConfirmValue !== currentOrganization.name, children: [_jsx(Trash2, { className: "size-4" }), " Delete Organization"] })] })] }) })] }))] }));
++                        }, children: _jsxs(DialogContent, { children: [_jsxs(DialogHeader, { children: [_jsx(DialogTitle, { className: "text-red-600 dark:text-red-400", children: "Excluir organização" }), _jsxs(DialogDescription, { children: ["Isto vai excluir permanentemente ", _jsx("strong", { children: currentOrganization.name }), ", com todos os membros, times e convites. Esta ação não pode ser desfeita."] })] }), _jsxs("div", { className: "py-2", children: [_jsxs("label", { htmlFor: "org-delete-confirm", className: "mb-1 block text-sm font-medium", children: ["Digite \"", currentOrganization.name, "\" para confirmar"] }), _jsx(Input, { id: "org-delete-confirm", value: deleteConfirmValue, onChange: (e) => setDeleteConfirmValue(e.target.value), placeholder: currentOrganization.name, className: "border-red-300 dark:border-red-800" })] }), _jsxs(DialogFooter, { children: [_jsx(Button, { variant: "outline", onClick: () => { setDeleteOpen(false); setDeleteConfirmValue(""); }, children: "Cancelar" }), _jsxs(Button, { variant: "destructive", onClick: handleConfirmDelete, disabled: deleteConfirmValue !== currentOrganization.name, children: [_jsx(Trash2, { className: "size-4" }), " Excluir organização"] })] })] }) })] }))] }));
+ }
+ //# sourceMappingURL=org-settings-panel.js.map
+\ No newline at end of file
+diff --git a/dist/react/components/section-members.js b/dist/react/components/section-members.js
+index 5f2d256ce22d1e58180469366a4a24ed07092dd6..1e8de37cff858cfab22cfc71d047d96ec5ffc990 100644
+--- a/dist/react/components/section-members.js
++++ b/dist/react/components/section-members.js
+@@ -13,7 +13,7 @@ import { Skeleton } from "../ui/skeleton.js";
+  *
+  * Includes:
+  * - Header with member/invitation counts
+- * - "Invite Member" button (for owners/admins)
++ * - "Convidar membro" button (for owners/admins)
+  * - MembersTable with filtering and actions
+  * - InviteMemberDialog
+  *
+@@ -26,7 +26,7 @@ import { Skeleton } from "../ui/skeleton.js";
+  * </TenantsProvider>
+  * ```
+  */
+-export function MembersSection({ className, title = "Members & Invitations", showInviteButton, showTeamSelection = true, showInvitationLink = true, invitationPath = "/accept-invitation/:id", expirationText = "48 hours", usersIcon, plusIcon, moreIcon, userMinusIcon, copyIcon, checkIcon, refreshIcon, cancelIcon, mailIcon, linkIcon, }) {
++export function MembersSection({ className, title = "Membros e convites", showInviteButton, showTeamSelection = true, showInvitationLink = true, invitationPath = "/accept-invitation/:id", expirationText = "48 horas", usersIcon, plusIcon, moreIcon, userMinusIcon, copyIcon, checkIcon, refreshIcon, cancelIcon, mailIcon, linkIcon, }) {
+     const { currentOrganization, members, invitations, teams, isOrganizationsLoading, currentRole, isMembersLoading, isInvitationsLoading, } = useTenantsData();
+     const { removeMember, updateMemberRole, inviteMember, resendInvitation, cancelInvitation, addTeamMember, onToast, } = useTenantsActions();
+     const isDataLoading = isMembersLoading || isInvitationsLoading;
+@@ -76,7 +76,7 @@ export function MembersSection({ className, title = "Members & Invitations", sho
+     const shouldShowInviteButton = showInviteButton ?? (currentRole === "owner" || currentRole === "admin");
+     const UsersIcon = usersIcon ?? (_jsx("div", { className: "flex size-10 items-center justify-center rounded-lg bg-primary/10", children: _jsx(Users, { className: "size-5 text-primary" }) }));
+     const PlusIcon = plusIcon ?? _jsx(Plus, { className: "size-4" });
+-    return (_jsxs(Card, { className: className, children: [_jsxs(CardHeader, { children: [_jsxs("div", { className: "flex items-center gap-3", children: [UsersIcon, _jsxs("div", { children: [_jsx(CardTitle, { className: "text-base", children: title }), isDataLoading ? (_jsx(Skeleton, { className: "mt-1 h-4 w-48" })) : (_jsxs(CardDescription, { children: [members.length, " member", members.length !== 1 ? "s" : "", pendingInvitationCount > 0 && (_jsxs(_Fragment, { children: [", ", pendingInvitationCount, " pending invitation", pendingInvitationCount !== 1 ? "s" : ""] }))] }))] })] }), shouldShowInviteButton && (_jsx(CardAction, { children: _jsx(InviteMemberDialog, { organizationName: currentOrganization.name, teams: transformedTeams, showTeamSelection: showTeamSelection, showInvitationLink: showInvitationLink, invitationPath: invitationPath, expirationText: expirationText, onInvite: inviteMember, onToast: onToast, mailIcon: mailIcon, copyIcon: copyIcon, checkIcon: checkIcon, linkIcon: linkIcon, trigger: _jsxs(Button, { children: [PlusIcon, _jsx("span", { children: "Invite Member" })] }) }) }))] }), _jsx(CardContent, { children: _jsx(MembersTable, { members: transformedMembers, invitations: transformedInvitations, teams: transformedTeams, isLoading: isDataLoading, isOwner: currentRole === "owner", isOwnerOrAdmin: currentRole === "owner" || currentRole === "admin", invitationPath: invitationPath, onRemoveMember: removeMember, onUpdateMemberRole: updateMemberRole, onAddToTeam: addTeamMember, onResendInvitation: resendInvitation, onCancelInvitation: cancelInvitation, onToast: onToast, moreIcon: moreIcon, userMinusIcon: userMinusIcon, copyIcon: copyIcon, checkIcon: checkIcon, refreshIcon: refreshIcon, cancelIcon: cancelIcon }) })] }));
++    return (_jsxs(Card, { className: className, children: [_jsxs(CardHeader, { children: [_jsxs("div", { className: "flex items-center gap-3", children: [UsersIcon, _jsxs("div", { children: [_jsx(CardTitle, { className: "text-base", children: title }), isDataLoading ? (_jsx(Skeleton, { className: "mt-1 h-4 w-48" })) : (_jsxs(CardDescription, { children: [members.length, members.length !== 1 ? " membros" : " membro", pendingInvitationCount > 0 && (_jsxs(_Fragment, { children: [", ", pendingInvitationCount, pendingInvitationCount !== 1 ? " convites pendentes" : " convite pendente"] }))] }))] })] }), shouldShowInviteButton && (_jsx(CardAction, { children: _jsx(InviteMemberDialog, { organizationName: currentOrganization.name, teams: transformedTeams, showTeamSelection: showTeamSelection, showInvitationLink: showInvitationLink, invitationPath: invitationPath, expirationText: expirationText, onInvite: inviteMember, onToast: onToast, mailIcon: mailIcon, copyIcon: copyIcon, checkIcon: checkIcon, linkIcon: linkIcon, trigger: _jsxs(Button, { children: [PlusIcon, _jsx("span", { children: "Convidar membro" })] }) }) }))] }), _jsx(CardContent, { children: _jsx(MembersTable, { members: transformedMembers, invitations: transformedInvitations, teams: transformedTeams, isLoading: isDataLoading, isOwner: currentRole === "owner", isOwnerOrAdmin: currentRole === "owner" || currentRole === "admin", invitationPath: invitationPath, onRemoveMember: removeMember, onUpdateMemberRole: updateMemberRole, onAddToTeam: addTeamMember, onResendInvitation: resendInvitation, onCancelInvitation: cancelInvitation, onToast: onToast, moreIcon: moreIcon, userMinusIcon: userMinusIcon, copyIcon: copyIcon, checkIcon: checkIcon, refreshIcon: refreshIcon, cancelIcon: cancelIcon }) })] }));
+ }
+ // ============================================================================
+ // Skeleton
+@@ -84,7 +84,7 @@ export function MembersSection({ className, title = "Members & Invitations", sho
+ function MembersSectionSkeleton({ className, title: _title, noOrg, }) {
+     // When no org is selected (not loading), show a message
+     if (noOrg) {
+-        return (_jsx(Card, { className: className, children: _jsx(CardContent, { className: "p-8 text-center", children: _jsx("p", { className: "text-muted-foreground", children: "Select an organization to view members" }) }) }));
++        return (_jsx(Card, { className: className, children: _jsx(CardContent, { className: "p-8 text-center", children: _jsx("p", { className: "text-muted-foreground", children: "Selecione uma organização para ver os membros" }) }) }));
+     }
+     return (_jsxs(Card, { className: className, children: [_jsxs(CardHeader, { children: [_jsxs("div", { className: "flex items-center gap-3", children: [_jsx(Skeleton, { className: "size-10 rounded-lg" }), _jsxs("div", { className: "space-y-2", children: [_jsx(Skeleton, { className: "h-5 w-44" }), _jsx(Skeleton, { className: "h-4 w-56" })] })] }), _jsx(CardAction, { children: _jsx(Skeleton, { className: "h-9 w-32 rounded-md" }) })] }), _jsxs(CardContent, { children: [_jsxs("div", { className: "mb-4 flex items-center gap-4", children: [_jsx(Skeleton, { className: "h-9 w-[180px]" }), _jsx(Skeleton, { className: "h-4 w-48" })] }), _jsxs("div", { className: "overflow-hidden rounded-lg border", children: [_jsxs("div", { className: "flex items-center border-b bg-muted/50 px-4 py-3", children: [_jsx("div", { className: "flex-1", children: _jsx(Skeleton, { className: "h-4 w-24" }) }), _jsx("div", { className: "w-20", children: _jsx(Skeleton, { className: "h-4 w-14" }) }), _jsx("div", { className: "w-20", children: _jsx(Skeleton, { className: "h-4 w-10" }) }), _jsx("div", { className: "w-24", children: _jsx(Skeleton, { className: "h-4 w-14" }) }), _jsx("div", { className: "w-16 text-right", children: _jsx(Skeleton, { className: "ml-auto h-4 w-14" }) })] }), Array.from({ length: 4 }).map((_, i) => (_jsxs("div", { className: "flex items-center border-b px-4 py-4 last:border-0", children: [_jsxs("div", { className: "flex-1 space-y-1.5", children: [_jsx(Skeleton, { className: "h-4", style: { width: `${100 + i * 20}px` } }), _jsx(Skeleton, { className: "h-3", style: { width: `${140 + i * 15}px` } })] }), _jsx("div", { className: "w-20", children: _jsx(Skeleton, { className: "h-5 w-14 rounded-full" }) }), _jsx("div", { className: "w-20", children: _jsx(Skeleton, { className: "h-5 w-14 rounded-full" }) }), _jsx("div", { className: "w-24", children: _jsx(Skeleton, { className: "h-5 w-20 rounded-full" }) }), _jsx("div", { className: "w-16 text-right", children: _jsx(Skeleton, { className: "ml-auto size-8 rounded-md" }) })] }, i)))] })] })] }));
+ }
+diff --git a/dist/react/components/section-teams.js b/dist/react/components/section-teams.js
+index 383cdb304663098c88b3c0f8de69b9e80568c98e..95019a91e5520c7333a4fa24e698fc438018511d 100644
+--- a/dist/react/components/section-teams.js
++++ b/dist/react/components/section-teams.js
+@@ -13,7 +13,7 @@ import { Skeleton } from "../ui/skeleton.js";
+  *
+  * Includes:
+  * - Header with team count
+- * - "Create Team" button (for owners/admins)
++ * - "Criar time" button (for owners/admins)
+  * - TeamsGrid with delete actions
+  * - Create Team Dialog
+  *
+@@ -26,7 +26,7 @@ import { Skeleton } from "../ui/skeleton.js";
+  * </TenantsProvider>
+  * ```
+  */
+-export function TeamsSection({ className, title = "Teams", showCreateButton, onTeamClick, usersIcon, plusIcon, trashIcon, }) {
++export function TeamsSection({ className, title = "Times", showCreateButton, onTeamClick, usersIcon, plusIcon, trashIcon, }) {
+     const { currentOrganization, teams, isOrganizationsLoading, currentRole, isTeamsLoading, } = useTenantsData();
+     const { createTeam, deleteTeam, onToast } = useTenantsActions();
+     // Transform teams for the grid (memoized so the array ref is stable across renders)
+@@ -50,14 +50,14 @@ export function TeamsSection({ className, title = "Teams", showCreateButton, onT
+     const shouldShowCreateButton = showCreateButton ?? (currentRole === "owner" || currentRole === "admin");
+     const UsersIcon = usersIcon ?? (_jsx("div", { className: "flex size-10 items-center justify-center rounded-lg bg-primary/10", children: _jsx(Users, { className: "size-5 text-primary" }) }));
+     const PlusIcon = plusIcon ?? _jsx(Plus, { className: "size-4" });
+-    return (_jsxs(Card, { className: className, children: [_jsxs(CardHeader, { children: [_jsxs("div", { className: "flex items-center gap-3", children: [UsersIcon, _jsxs("div", { children: [_jsx(CardTitle, { className: "text-base", children: title }), isTeamsLoading ? (_jsx(Skeleton, { className: "mt-1 h-4 w-24" })) : (_jsxs(CardDescription, { children: [teams.length, " team", teams.length !== 1 ? "s" : ""] }))] })] }), shouldShowCreateButton && (_jsx(CardAction, { children: _jsx(CreateTeamDialog, { organizationName: currentOrganization.name, onCreateTeam: onCreateTeam, onToast: onToast, trigger: _jsxs(Button, { children: [PlusIcon, _jsx("span", { children: "Create Team" })] }) }) }))] }), _jsx(CardContent, { children: _jsx(TeamsGrid, { teams: transformedTeams, isLoading: isTeamsLoading, isOwnerOrAdmin: currentRole === "owner" || currentRole === "admin", onTeamClick: onTeamClick, onDeleteTeam: deleteTeam, onToast: onToast, usersIcon: usersIcon, trashIcon: trashIcon, emptyAction: _jsx(CreateTeamDialog, { organizationName: currentOrganization.name, onCreateTeam: onCreateTeam, onToast: onToast, trigger: _jsxs(Button, { children: [PlusIcon, _jsx("span", { children: "Create your first team" })] }) }) }) })] }));
++    return (_jsxs(Card, { className: className, children: [_jsxs(CardHeader, { children: [_jsxs("div", { className: "flex items-center gap-3", children: [UsersIcon, _jsxs("div", { children: [_jsx(CardTitle, { className: "text-base", children: title }), isTeamsLoading ? (_jsx(Skeleton, { className: "mt-1 h-4 w-24" })) : (_jsxs(CardDescription, { children: [teams.length, teams.length !== 1 ? " times" : " time"] }))] })] }), shouldShowCreateButton && (_jsx(CardAction, { children: _jsx(CreateTeamDialog, { organizationName: currentOrganization.name, onCreateTeam: onCreateTeam, onToast: onToast, trigger: _jsxs(Button, { children: [PlusIcon, _jsx("span", { children: "Criar time" })] }) }) }))] }), _jsx(CardContent, { children: _jsx(TeamsGrid, { teams: transformedTeams, isLoading: isTeamsLoading, isOwnerOrAdmin: currentRole === "owner" || currentRole === "admin", onTeamClick: onTeamClick, onDeleteTeam: deleteTeam, onToast: onToast, usersIcon: usersIcon, trashIcon: trashIcon, emptyAction: _jsx(CreateTeamDialog, { organizationName: currentOrganization.name, onCreateTeam: onCreateTeam, onToast: onToast, trigger: _jsxs(Button, { children: [PlusIcon, _jsx("span", { children: "Crie o primeiro time" })] }) }) }) })] }));
+ }
+ // ============================================================================
+ // Skeleton
+ // ============================================================================
+ function TeamsSectionSkeleton({ className, title: _title, noOrg, }) {
+     if (noOrg) {
+-        return (_jsx(Card, { className: className, children: _jsx(CardContent, { className: "p-8 text-center", children: _jsx("p", { className: "text-muted-foreground", children: "Select an organization to view teams" }) }) }));
++        return (_jsx(Card, { className: className, children: _jsx(CardContent, { className: "p-8 text-center", children: _jsx("p", { className: "text-muted-foreground", children: "Selecione uma organização para ver os times" }) }) }));
+     }
+     return (_jsxs(Card, { className: className, children: [_jsxs(CardHeader, { children: [_jsxs("div", { className: "flex items-center gap-3", children: [_jsx(Skeleton, { className: "size-10 rounded-lg" }), _jsxs("div", { className: "space-y-2", children: [_jsx(Skeleton, { className: "h-5 w-20" }), _jsx(Skeleton, { className: "h-4 w-24" })] })] }), _jsx(CardAction, { children: _jsx(Skeleton, { className: "h-9 w-32 rounded-md" }) })] }), _jsx(CardContent, { children: _jsx("div", { className: "grid gap-4 md:grid-cols-2 lg:grid-cols-3", children: Array.from({ length: 3 }).map((_, i) => (_jsxs(Card, { children: [_jsx(CardHeader, { className: "pb-2", children: _jsxs("div", { className: "flex items-start justify-between", children: [_jsxs("div", { className: "flex-1 space-y-2", children: [_jsx(Skeleton, { className: "h-5 w-28" }), _jsx(Skeleton, { className: "h-4 w-40" })] }), _jsx(Skeleton, { className: "size-6 rounded-md" })] }) }), _jsx(CardContent, { className: "pt-0", children: _jsx(Skeleton, { className: "h-5 w-16 rounded-full" }) })] }, i))) }) })] }));
+ }
+diff --git a/dist/react/components/team-create-dialog.js b/dist/react/components/team-create-dialog.js
+index 067f4c5175457947fa46b9e4ce8d1716a5eb5f88..c50388dd360e991b90825c7618e88bc49e694a96 100644
+--- a/dist/react/components/team-create-dialog.js
++++ b/dist/react/components/team-create-dialog.js
+@@ -40,20 +40,20 @@ export function CreateTeamDialog({ organizationName, onCreateTeam, onSuccess, tr
+         setError(null);
+         try {
+             await onCreateTeam(name, description || undefined);
+-            onToast?.("Team created successfully!", "success");
++            onToast?.("Time criado!", "success");
+             setName("");
+             setDescription("");
+             setOpen(false);
+             onSuccess?.();
+         }
+         catch (err) {
+-            setError(err.message || "Failed to create team");
+-            onToast?.(err.message || "Failed to create team", "error");
++            setError(err.message || "Não foi possível criar o time");
++            onToast?.(err.message || "Não foi possível criar o time", "error");
+         }
+         finally {
+             setIsCreating(false);
+         }
+     };
+-    return (_jsxs(Dialog, { open: open, onOpenChange: setOpen, children: [_jsx(DialogTrigger, { asChild: true, children: _jsx("div", { className: className, children: trigger || (_jsxs(Button, { variant: "outline", children: [PlusIcon, _jsx("span", { children: "New Team" })] })) }) }), _jsxs(DialogContent, { className: "sm:max-w-[425px]", children: [_jsxs(DialogHeader, { children: [_jsx(DialogTitle, { children: "Create Team" }), _jsxs(DialogDescription, { children: ["Create a new team in ", organizationName, " to organize your members."] })] }), _jsxs("div", { className: "space-y-4 py-2", children: [_jsxs("div", { className: "space-y-2", children: [_jsx(Label, { htmlFor: "team-name", children: "Team Name" }), _jsx(Input, { id: "team-name", type: "text", placeholder: "Engineering, Sales, Marketing...", value: name, onChange: (e) => setName(e.target.value), disabled: isCreating })] }), _jsxs("div", { className: "space-y-2", children: [_jsx(Label, { htmlFor: "team-description", children: "Description (Optional)" }), _jsx(Textarea, { id: "team-description", placeholder: "What does this team do?", value: description, onChange: (e) => setDescription(e.target.value), disabled: isCreating, rows: 3 })] }), error && (_jsx("p", { className: "text-sm text-destructive", role: "alert", children: error }))] }), _jsxs(DialogFooter, { children: [_jsx(Button, { variant: "outline", onClick: () => setOpen(false), disabled: isCreating, children: "Cancel" }), _jsx(Button, { onClick: handleCreate, disabled: isCreating || !name, children: isCreating ? "Creating..." : "Create Team" })] })] })] }));
++    return (_jsxs(Dialog, { open: open, onOpenChange: setOpen, children: [_jsx(DialogTrigger, { asChild: true, children: _jsx("div", { className: className, children: trigger || (_jsxs(Button, { variant: "outline", children: [PlusIcon, _jsx("span", { children: "Novo time" })] })) }) }), _jsxs(DialogContent, { className: "sm:max-w-[425px]", children: [_jsxs(DialogHeader, { children: [_jsx(DialogTitle, { children: "Criar time" }), _jsxs(DialogDescription, { children: ["Crie um novo time em ", organizationName, " to organize your members."] })] }), _jsxs("div", { className: "space-y-4 py-2", children: [_jsxs("div", { className: "space-y-2", children: [_jsx(Label, { htmlFor: "team-name", children: "Nome do time" }), _jsx(Input, { id: "team-name", type: "text", placeholder: "UTI, Farmácia, Enfermaria...", value: name, onChange: (e) => setName(e.target.value), disabled: isCreating })] }), _jsxs("div", { className: "space-y-2", children: [_jsx(Label, { htmlFor: "team-description", children: "Descrição (opcional)" }), _jsx(Textarea, { id: "team-description", placeholder: "O que este time faz?", value: description, onChange: (e) => setDescription(e.target.value), disabled: isCreating, rows: 3 })] }), error && (_jsx("p", { className: "text-sm text-destructive", role: "alert", children: error }))] }), _jsxs(DialogFooter, { children: [_jsx(Button, { variant: "outline", onClick: () => setOpen(false), disabled: isCreating, children: "Cancelar" }), _jsx(Button, { onClick: handleCreate, disabled: isCreating || !name, children: isCreating ? "Criando..." : "Criar time" })] })] })] }));
+ }
+ //# sourceMappingURL=team-create-dialog.js.map
+\ No newline at end of file
+diff --git a/dist/react/components/teams-grid.js b/dist/react/components/teams-grid.js
+index 327e2f9f290d7684bbb1c95218cdd66a22a8564a..4037d5fe5654d34e73dcc27aabf0a5915bc807c1 100644
+--- a/dist/react/components/teams-grid.js
++++ b/dist/react/components/teams-grid.js
+@@ -40,17 +40,17 @@ export function TeamsGrid({ teams, isLoading = false, isOwnerOrAdmin = false, on
+         e.stopPropagation();
+         try {
+             await onDeleteTeam?.(teamId);
+-            onToast?.("Team deleted successfully", "success");
++            onToast?.("Time excluído", "success");
+         }
+         catch (error) {
+-            onToast?.(error.message || "Failed to delete team", "error");
++            onToast?.(error.message || "Não foi possível excluir o time", "error");
+         }
+     };
+     if (isLoading) {
+         return (_jsx("div", { className: cn("grid gap-4 md:grid-cols-2 lg:grid-cols-3", className), children: Array.from({ length: 3 }).map((_, i) => (_jsxs(Card, { children: [_jsx(CardHeader, { className: "pb-2", children: _jsxs("div", { className: "flex items-start justify-between", children: [_jsxs("div", { className: "flex-1 space-y-2", children: [_jsx(Skeleton, { className: "h-5 w-28" }), _jsx(Skeleton, { className: "h-4 w-40" })] }), _jsx(Skeleton, { className: "size-6 rounded-md" })] }) }), _jsx(CardContent, { className: "pt-0", children: _jsx(Skeleton, { className: "h-5 w-16 rounded-full" }) })] }, i))) }));
+     }
+     if (teams.length === 0) {
+-        return (_jsxs("div", { className: cn("p-8 text-center", className), children: [_jsx("div", { className: "mb-4 flex justify-center", children: _jsx("span", { className: "text-muted-foreground", children: UsersIcon }) }), _jsx("h3", { className: "mb-2 text-lg font-semibold", children: "No teams yet" }), _jsx("p", { className: "mb-4 text-muted-foreground", children: "Create teams to organize your members" }), isOwnerOrAdmin && emptyAction] }));
++        return (_jsxs("div", { className: cn("p-8 text-center", className), children: [_jsx("div", { className: "mb-4 flex justify-center", children: _jsx("span", { className: "text-muted-foreground", children: UsersIcon }) }), _jsx("h3", { className: "mb-2 text-lg font-semibold", children: "Nenhum time ainda" }), _jsx("p", { className: "mb-4 text-muted-foreground", children: "Crie times para organizar os membros" }), isOwnerOrAdmin && emptyAction] }));
+     }
+     return (_jsx("div", { className: cn("grid gap-4 md:grid-cols-2 lg:grid-cols-3", className), children: teams.map((team) => (_jsxs(Card, { className: cn(onTeamClick && "cursor-pointer transition-shadow hover:shadow-md"), onClick: () => onTeamClick?.(team), role: onTeamClick ? "button" : undefined, tabIndex: onTeamClick ? 0 : undefined, onKeyDown: onTeamClick ? (e) => {
+                 if (e.key === "Enter" || e.key === " ") {
+@@ -58,6 +58,6 @@ export function TeamsGrid({ teams, isLoading = false, isOwnerOrAdmin = false, on
+                     e.preventDefault();
+                     onTeamClick(team);
+                 }
+-            } : undefined, children: [_jsx(CardHeader, { className: "pb-2", children: _jsxs("div", { className: "flex items-start justify-between", children: [_jsxs("div", { className: "flex-1 space-y-1", children: [_jsx(CardTitle, { className: "text-lg", children: team.name }), team.description && (_jsx(CardDescription, { children: team.description }))] }), isOwnerOrAdmin && onDeleteTeam && (_jsx(Button, { variant: "ghost", size: "icon-xs", onClick: (e) => handleDeleteTeam(team._id, e), "aria-label": "Delete team", className: "text-muted-foreground hover:text-destructive", children: TrashIcon }))] }) }), _jsx(CardContent, { className: "pt-0", children: _jsxs(Badge, { variant: "secondary", children: [UsersIcon, _jsx("span", { children: "Team" })] }) })] }, team._id))) }));
++            } : undefined, children: [_jsx(CardHeader, { className: "pb-2", children: _jsxs("div", { className: "flex items-start justify-between", children: [_jsxs("div", { className: "flex-1 space-y-1", children: [_jsx(CardTitle, { className: "text-lg", children: team.name }), team.description && (_jsx(CardDescription, { children: team.description }))] }), isOwnerOrAdmin && onDeleteTeam && (_jsx(Button, { variant: "ghost", size: "icon-xs", onClick: (e) => handleDeleteTeam(team._id, e), "aria-label": "Excluir time", className: "text-muted-foreground hover:text-destructive", children: TrashIcon }))] }) }), _jsx(CardContent, { className: "pt-0", children: _jsxs(Badge, { variant: "secondary", children: [UsersIcon, _jsx("span", { children: "Time" })] }) })] }, team._id))) }));
+ }
+ //# sourceMappingURL=teams-grid.js.map
+\ No newline at end of file
+diff --git a/dist/react/ui/dialog.js b/dist/react/ui/dialog.js
+index 2d3ca7f53ff9d9f237ae3c68810ff1aea0169642..e7f155f74ce658f21481d3a0008a2c7f9f299051 100644
+--- a/dist/react/ui/dialog.js
++++ b/dist/react/ui/dialog.js
+@@ -20,13 +20,13 @@ function DialogOverlay({ className, ...props }) {
+     return (_jsx(DialogPrimitive.Overlay, { "data-slot": "dialog-overlay", className: cn("data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50", className), ...props }));
+ }
+ function DialogContent({ className, children, showCloseButton = true, ...props }) {
+-    return (_jsxs(DialogPortal, { "data-slot": "dialog-portal", children: [_jsx(DialogOverlay, {}), _jsxs(DialogPrimitive.Content, { "data-slot": "dialog-content", className: cn("bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 outline-none sm:max-w-lg", className), ...props, children: [children, showCloseButton && (_jsxs(DialogPrimitive.Close, { "data-slot": "dialog-close", className: "ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4", children: [_jsx(XIcon, {}), _jsx("span", { className: "sr-only", children: "Close" })] }))] })] }));
++    return (_jsxs(DialogPortal, { "data-slot": "dialog-portal", children: [_jsx(DialogOverlay, {}), _jsxs(DialogPrimitive.Content, { "data-slot": "dialog-content", className: cn("bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 outline-none sm:max-w-lg", className), ...props, children: [children, showCloseButton && (_jsxs(DialogPrimitive.Close, { "data-slot": "dialog-close", className: "ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4", children: [_jsx(XIcon, {}), _jsx("span", { className: "sr-only", children: "Fechar" })] }))] })] }));
+ }
+ function DialogHeader({ className, ...props }) {
+     return (_jsx("div", { "data-slot": "dialog-header", className: cn("flex flex-col gap-2 text-center sm:text-left", className), ...props }));
+ }
+ function DialogFooter({ className, showCloseButton = false, children, ...props }) {
+-    return (_jsxs("div", { "data-slot": "dialog-footer", className: cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className), ...props, children: [children, showCloseButton && (_jsx(DialogPrimitive.Close, { asChild: true, children: _jsx(Button, { variant: "outline", children: "Close" }) }))] }));
++    return (_jsxs("div", { "data-slot": "dialog-footer", className: cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className), ...props, children: [children, showCloseButton && (_jsx(DialogPrimitive.Close, { asChild: true, children: _jsx(Button, { variant: "outline", children: "Fechar" }) }))] }));
+ }
+ function DialogTitle({ className, ...props }) {
+     return (_jsx(DialogPrimitive.Title, { "data-slot": "dialog-title", className: cn("text-lg leading-none font-semibold", className), ...props }));
+diff --git a/dist/react/utils.js b/dist/react/utils.js
+index 3b0d50dd40d93fe07f313a93246cbc57e76fbac4..0d4e50e4b663bd80980eb77bf225ef9e2b248cf7 100644
+--- a/dist/react/utils.js
++++ b/dist/react/utils.js
+@@ -29,15 +29,15 @@ export function formatRelativeTime(date) {
+     const hours = Math.floor(diff / (1000 * 60 * 60));
+     const days = Math.floor(hours / 24);
+     if (diff < 0) {
+-        return "Expired";
++        return "Expirado";
+     }
+     if (days > 0) {
+-        return `${days} day${days > 1 ? "s" : ""} left`;
++        return `${days > 1 ? "Faltam" : "Falta"} ${days} ${days > 1 ? "dias" : "dia"}`;
+     }
+     if (hours > 0) {
+-        return `${hours} hour${hours > 1 ? "s" : ""} left`;
++        return `${hours > 1 ? "Faltam" : "Falta"} ${hours} ${hours > 1 ? "horas" : "hora"}`;
+     }
+-    return "Less than an hour left";
++    return "Falta menos de uma hora";
+ }
+ /**
+  * Generate an invitation link from an invitation ID

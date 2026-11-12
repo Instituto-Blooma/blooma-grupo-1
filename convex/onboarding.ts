@@ -76,7 +76,7 @@ async function deliverInvitationEmail(
 ) {
   const organization = await tenantsClient.getOrganization(ctx, organizationId);
   if (!organization) {
-    throw new ConvexError('Organization not found');
+    throw new ConvexError('Organização não encontrada');
   }
 
   await sendInvitationEmail(ctx, {
@@ -171,7 +171,7 @@ export const provisionUser = mutation({
 
     const { user } = await ensureUserByEmail(ctx, email);
     if (user.onboardingStatus === 'active') {
-      throw new ConvexError('User is already active');
+      throw new ConvexError('Este usuário já está ativo');
     }
 
     await markUserPending(ctx, user._id);
@@ -210,18 +210,18 @@ export const sendInvite = mutation({
     const matches = await findUsersByEmail(ctx, email);
     const user = matches[0];
     if (!user) {
-      throw new ConvexError('User not found for this organization');
+      throw new ConvexError('Usuário não encontrado nesta organização');
     }
     if (user.onboardingStatus === 'active') {
-      throw new ConvexError('User is already active');
+      throw new ConvexError('Este usuário já está ativo');
     }
     if (user.onboardingStatus === 'invited') {
-      throw new ConvexError('Invitation already sent');
+      throw new ConvexError('O convite já foi enviado');
     }
 
     const invitation = await getPendingInvitationForOrg(ctx, args.organizationId, email);
     if (!invitation) {
-      throw new ConvexError('Provisioned user not found for this organization');
+      throw new ConvexError('Usuário cadastrado não encontrado nesta organização');
     }
 
     await deliverInvitationEmail(ctx, args.organizationId, email, invitation._id);
@@ -244,10 +244,10 @@ export const removeMemberWithSuccession = mutation({
       userId: args.successorUserId,
     });
     if (!successor) {
-      throw new ConvexError('Successor must be a member of this organization');
+      throw new ConvexError('O sucessor precisa ser membro desta organização');
     }
     if (args.successorUserId === args.memberUserId) {
-      throw new ConvexError('Successor must be a different member');
+      throw new ConvexError('O sucessor precisa ser outro membro');
     }
 
     await reassignAllOrgResources(
@@ -290,7 +290,7 @@ export const moveUserToOrg = mutation({
 
     const user = await ctx.db.get(args.userId);
     if (!user?.email) {
-      throw new ConvexError('User email required');
+      throw new ConvexError('Informe o e-mail do usuário');
     }
     const email = normalizeEmail(user.email);
 

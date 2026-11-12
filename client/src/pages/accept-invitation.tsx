@@ -43,10 +43,10 @@ function AcceptInvitationContent() {
         }}
       />
       <div className="text-sm text-muted-foreground" data-testid="accept-invitation-status">
-        {acceptState.isLoading ? 'Loading invitation...' : (acceptState.error ?? 'Ready')}
+        {acceptState.isLoading ? 'Carregando convite...' : (acceptState.error ?? 'Pronto')}
       </div>
       <Link to="/login">
-        <Button data-testid="button-go-to-login">Go to sign in</Button>
+        <Button data-testid="button-go-to-login">Ir para o login</Button>
       </Link>
     </div>
   );
