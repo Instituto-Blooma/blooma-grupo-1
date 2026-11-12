@@ -124,10 +124,7 @@ export function PharmacyQueue({
     <section className="space-y-4">
       <div>
         <h2 className="font-serif text-2xl font-semibold">Solicitações</h2>
-        <p className="text-muted-foreground">
-          Ordem de atendimento: Urgente, Prioritário e Rotina; dentro de cada nível, o prazo mais
-          próximo primeiro. Toque em uma solicitação para ver a ficha.
-        </p>
+        <p className="text-muted-foreground">Toque em uma solicitação para ver a ficha.</p>
       </div>
       {queue.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
@@ -215,9 +212,7 @@ function RequestSheet({
                 <UrgencyBadge urgency={request.urgency} />
                 <StatusBadge status={request.status} />
               </DialogTitle>
-              <DialogDescription>
-                Ficha preenchida pela enfermagem · pedida {formatElapsed(request.createdAt, now)}
-              </DialogDescription>
+              <DialogDescription>Pedida {formatElapsed(request.createdAt, now)}</DialogDescription>
             </DialogHeader>
 
             <dl className="divide-y rounded-lg border">

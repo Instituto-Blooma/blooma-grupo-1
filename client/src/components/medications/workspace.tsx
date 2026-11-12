@@ -35,9 +35,6 @@ export function HospitalHome({
         <h1 className="font-serif text-5xl font-semibold tracking-tight sm:text-7xl">
           {PRODUCT_NAME}
         </h1>
-        <p className="text-lg text-muted-foreground">
-          Solicitação de medicamentos entre enfermagem e farmácia
-        </p>
         <p className="text-xl font-semibold">{hospitalName}</p>
       </div>
       <div className="grid w-full gap-6 sm:grid-cols-2">

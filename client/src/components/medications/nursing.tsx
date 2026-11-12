@@ -249,7 +249,6 @@ export function RequestForm({
     >
       <div>
         <h2 className="font-serif text-2xl font-semibold">Solicitar medicamento</h2>
-        <p className="text-muted-foreground">A farmácia recebe o pedido na hora.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -532,10 +531,6 @@ export function TrackDeliveries({
     <section className="space-y-4">
       <div>
         <h2 className="font-serif text-2xl font-semibold">Acompanhar entregas</h2>
-        <p className="text-muted-foreground">
-          Quando a farmácia marcar como "Enviado", confirme o recebimento assim que o medicamento
-          chegar ao leito. Pedidos rejeitados aparecem em vermelho até alguém marcar "Ciente".
-        </p>
       </div>
 
       {rejected.length > 0 ? (
