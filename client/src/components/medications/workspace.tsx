@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeftRight, History, Home, Pill, Stethoscope } from 'lucide-react';
 import { isFinishedStatus } from '../../../../convex/lib/medicationOptions';
-import { PRODUCT_NAME } from '@/components/medbridge-brand';
+import { MedBridgeWordmark } from '@/components/medbridge-brand';
 import { Button } from '@/components/ui/button';
 import { PROFILE_LABEL, type HospitalProfile } from '@/lib/hospital-profile';
 import { RequestHistory } from './history';
@@ -32,8 +32,8 @@ export function HospitalHome({
   return (
     <div className="mx-auto flex max-w-3xl flex-col items-center gap-10 py-10 text-center">
       <div className="space-y-3">
-        <h1 className="font-serif text-5xl font-semibold tracking-tight sm:text-7xl">
-          {PRODUCT_NAME}
+        <h1 className="flex justify-center">
+          <MedBridgeWordmark sizeClassName="h-16 sm:h-24" />
         </h1>
         <p className="text-xl font-semibold">{hospitalName}</p>
       </div>

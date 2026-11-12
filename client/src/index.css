@@ -4,58 +4,58 @@
 
 /* LIGHT MODE */
 :root {
-  --button-outline: rgba(0, 0, 0, 0.1);
-  --badge-outline: rgba(0, 0, 0, 0.05);
+  --button-outline: rgba(11, 42, 91, 0.12);
+  --badge-outline: rgba(11, 42, 91, 0.06);
   --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(0, 0, 0, 0.03);
-  --elevate-2: rgba(0, 0, 0, 0.08);
-  /* Instituto Blooma — from institutoblooma.org.br */
-  --background: 35 100% 98%;
-  --foreground: 226 77% 16%;
-  --border: 35 22% 88%;
+  --elevate-1: rgba(31, 95, 191, 0.04);
+  --elevate-2: rgba(31, 95, 191, 0.09);
+  /* MedBridge — manual de marca (paleta "Tons de azul sobre branco perolado") */
+  --background: 216 33% 97%;
+  --foreground: 217 78% 20%;
+  --border: 216 24% 88%;
   --card: 0 0% 100%;
-  --card-foreground: 226 77% 16%;
-  --card-border: 35 20% 90%;
-  --sidebar: 35 45% 96%;
-  --sidebar-foreground: 226 77% 16%;
-  --sidebar-border: 35 22% 88%;
-  --sidebar-primary: 239 98% 42%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 50 100% 90%;
-  --sidebar-accent-foreground: 226 77% 16%;
-  --sidebar-ring: 239 98% 42%;
+  --card-foreground: 217 78% 20%;
+  --card-border: 216 24% 90%;
+  --sidebar: 217 78% 20%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-border: 217 60% 28%;
+  --sidebar-primary: 206 73% 60%;
+  --sidebar-primary-foreground: 217 78% 14%;
+  --sidebar-accent: 217 60% 28%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-ring: 206 73% 60%;
   --popover: 0 0% 100%;
-  --popover-foreground: 226 77% 16%;
-  --popover-border: 35 20% 90%;
-  --primary: 239 98% 42%;
+  --popover-foreground: 217 78% 20%;
+  --popover-border: 216 24% 90%;
+  --primary: 216 72% 44%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 269 61% 92%;
-  --secondary-foreground: 226 77% 16%;
-  --muted: 35 28% 93%;
-  --muted-foreground: 226 22% 40%;
-  --accent: 50 100% 88%;
-  --accent-foreground: 226 77% 16%;
-  --destructive: 343 48% 40%;
+  --secondary: 206 85% 94%;
+  --secondary-foreground: 216 72% 40%;
+  --muted: 216 24% 96%;
+  --muted-foreground: 217 20% 42%;
+  --accent: 206 85% 94%;
+  --accent-foreground: 217 78% 20%;
+  --destructive: 354 70% 45%;
   --destructive-foreground: 0 0% 100%;
-  --input: 226 16% 68%;
-  --ring: 239 98% 42%;
-  --chart-1: 239 98% 42%;
-  --chart-2: 50 100% 52%;
-  --chart-3: 130 40% 42%;
-  --chart-4: 262 25% 44%;
-  --chart-5: 191 50% 42%;
-  --font-sans: 'Open Sans', sans-serif;
-  --font-serif: 'Source Serif 4', Georgia, serif;
+  --input: 216 20% 80%;
+  --ring: 210 64% 50%;
+  --chart-1: 216 72% 44%;
+  --chart-2: 210 64% 50%;
+  --chart-3: 206 73% 60%;
+  --chart-4: 202 88% 77%;
+  --chart-5: 217 78% 20%;
+  --font-sans: 'Lexend', system-ui, sans-serif;
+  --font-serif: 'Lexend', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', Menlo, monospace;
-  --radius: 0.875rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0);
-  --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0);
-  --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 1px 2px -1px hsl(0 0% 0% / 0);
-  --shadow: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 1px 2px -1px hsl(0 0% 0% / 0);
-  --shadow-md: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 2px 4px -1px hsl(0 0% 0% / 0);
-  --shadow-lg: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 4px 6px -1px hsl(0 0% 0% / 0);
-  --shadow-xl: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 8px 10px -1px hsl(0 0% 0% / 0);
-  --shadow-2xl: 0px 2px 0px 0px hsl(0 0% 0% / 0);
+  --radius: 0.75rem;
+  --shadow-2xs: 0px 1px 1px 0px rgba(11, 42, 91, 0.04);
+  --shadow-xs: 0px 1px 2px 0px rgba(11, 42, 91, 0.06);
+  --shadow-sm: 0px 1px 2px 0px rgba(11, 42, 91, 0.06), 0px 2px 6px -1px rgba(11, 42, 91, 0.08);
+  --shadow: 0px 1px 3px 0px rgba(11, 42, 91, 0.08), 0px 4px 12px -2px rgba(11, 42, 91, 0.08);
+  --shadow-md: 0px 2px 4px -1px rgba(11, 42, 91, 0.08), 0px 8px 20px -4px rgba(11, 42, 91, 0.12);
+  --shadow-lg: 0px 4px 8px -2px rgba(11, 42, 91, 0.08), 0px 16px 32px -8px rgba(11, 42, 91, 0.16);
+  --shadow-xl: 0px 8px 16px -4px rgba(11, 42, 91, 0.1), 0px 24px 48px -12px rgba(11, 42, 91, 0.2);
+  --shadow-2xl: 0px 32px 64px -16px rgba(11, 42, 91, 0.24);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -103,51 +103,51 @@
 }
 
 .dark {
-  --button-outline: rgba(255, 255, 255, 0.1);
-  --badge-outline: rgba(255, 255, 255, 0.05);
+  --button-outline: rgba(147, 211, 248, 0.14);
+  --badge-outline: rgba(147, 211, 248, 0.08);
   --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255, 255, 255, 0.04);
-  --elevate-2: rgba(255, 255, 255, 0.09);
-  --background: 226 45% 8%;
-  --foreground: 35 40% 96%;
-  --border: 226 20% 18%;
-  --card: 226 38% 11%;
-  --card-foreground: 35 40% 96%;
-  --card-border: 226 20% 16%;
-  --sidebar: 226 40% 10%;
-  --sidebar-foreground: 35 40% 96%;
-  --sidebar-border: 226 20% 16%;
-  --sidebar-primary: 50 100% 70%;
-  --sidebar-primary-foreground: 226 77% 12%;
-  --sidebar-accent: 226 25% 16%;
-  --sidebar-accent-foreground: 35 40% 96%;
-  --sidebar-ring: 50 100% 70%;
-  --popover: 226 32% 13%;
-  --popover-foreground: 35 40% 96%;
-  --popover-border: 226 20% 18%;
-  --primary: 239 86% 68%;
-  --primary-foreground: 226 60% 10%;
-  --secondary: 262 20% 22%;
-  --secondary-foreground: 35 40% 96%;
-  --muted: 226 20% 16%;
-  --muted-foreground: 35 16% 72%;
-  --accent: 50 40% 18%;
-  --accent-foreground: 50 100% 78%;
-  --destructive: 343 55% 55%;
+  --elevate-1: rgba(147, 211, 248, 0.05);
+  --elevate-2: rgba(147, 211, 248, 0.1);
+  --background: 220 72% 11%;
+  --foreground: 210 40% 98%;
+  --border: 217 50% 24%;
+  --card: 219 65% 16%;
+  --card-foreground: 210 40% 98%;
+  --card-border: 217 50% 22%;
+  --sidebar: 220 72% 9%;
+  --sidebar-foreground: 210 40% 98%;
+  --sidebar-border: 217 50% 20%;
+  --sidebar-primary: 206 73% 60%;
+  --sidebar-primary-foreground: 217 78% 14%;
+  --sidebar-accent: 217 60% 22%;
+  --sidebar-accent-foreground: 202 88% 85%;
+  --sidebar-ring: 206 73% 60%;
+  --popover: 219 65% 16%;
+  --popover-foreground: 210 40% 98%;
+  --popover-border: 217 50% 24%;
+  --primary: 206 73% 60%;
+  --primary-foreground: 217 78% 14%;
+  --secondary: 217 60% 22%;
+  --secondary-foreground: 202 88% 85%;
+  --muted: 218 55% 19%;
+  --muted-foreground: 207 40% 76%;
+  --accent: 217 60% 24%;
+  --accent-foreground: 202 88% 85%;
+  --destructive: 354 70% 60%;
   --destructive-foreground: 0 0% 100%;
-  --input: 226 15% 32%;
-  --ring: 239 86% 68%;
-  --chart-1: 239 86% 70%;
-  --chart-2: 50 100% 70%;
-  --chart-3: 130 45% 58%;
-  --chart-4: 262 30% 64%;
-  --chart-5: 191 50% 64%;
+  --input: 217 40% 34%;
+  --ring: 206 73% 60%;
+  --chart-1: 206 73% 60%;
+  --chart-2: 202 88% 77%;
+  --chart-3: 210 64% 50%;
+  --chart-4: 216 72% 44%;
+  --chart-5: 210 40% 98%;
   --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0);
   --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0);
-  --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 1px 2px -1px hsl(0 0% 0% / 0);
-  --shadow: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 1px 2px -1px hsl(0 0% 0% / 0);
-  --shadow-md: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 2px 4px -1px hsl(0 0% 0% / 0);
-  --shadow-lg: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 4px 6px -1px hsl(0 0% 0% / 0);
+  --shadow-sm: 0px 1px 2px 0px rgba(0, 0, 0, 0.25);
+  --shadow: 0px 2px 8px -2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0px 8px 20px -6px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0px 16px 32px -10px rgba(0, 0, 0, 0.5);
   --shadow-xl: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 8px 10px -1px hsl(0 0% 0% / 0);
   --shadow-2xl: 0px 2px 0px 0px hsl(0 0% 0% / 0);
 
@@ -201,14 +201,87 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    /* Manual de marca: Lexend Light 300 para textos. */
+    font-weight: 300;
   }
 
+  /* "Branco perolado": white fading into Cinza-pérola. */
+  html:not(.dark) body {
+    background-image: linear-gradient(180deg, #ffffff 0%, #f2f4f7 100%);
+    background-attachment: fixed;
+  }
+
+  /* Dark mode: deep navy with a soft brand glow at the top. */
+  .dark body {
+    background-image: radial-gradient(
+      ellipse 90% 60% at 50% 0%,
+      rgba(31, 95, 191, 0.28) 0%,
+      rgba(11, 42, 91, 0) 70%
+    );
+    background-attachment: fixed;
+  }
+
+  /* Manual de marca: Lexend SemiBold 600 para títulos. */
   h1,
   h2,
   h3 {
     font-family: var(--font-serif);
-    letter-spacing: -0.025em;
+    font-weight: 600;
+    letter-spacing: -0.015em;
   }
+
+  /* Form text and labels read better slightly heavier than body text. */
+  label,
+  input,
+  select,
+  textarea,
+  button,
+  th,
+  dt {
+    font-weight: 400;
+  }
+
+  ::selection {
+    background-color: rgba(79, 163, 227, 0.3);
+  }
+}
+
+/* Logo variants: light-mode artwork on light themes, dark-mode artwork on dark/high contrast. */
+.mb-logo-escuro {
+  display: none;
+}
+
+.dark .mb-logo-claro,
+html.alto-contraste .mb-logo-claro {
+  display: none;
+}
+
+.dark .mb-logo-escuro,
+html.alto-contraste .mb-logo-escuro {
+  display: block;
+}
+
+/* Grafismo "Malha de pontos" (manual de marca): dot grid that fades out, for light backgrounds. */
+.mb-malha-pontos {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(79, 163, 227, 0.55) 1.6px, transparent 2.2px);
+  background-size: 22px 22px;
+  -webkit-mask-image:
+    radial-gradient(ellipse 70% 60% at 0% 0%, #000 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 100% 100%, #000 0%, transparent 70%);
+  mask-image:
+    radial-gradient(ellipse 70% 60% at 0% 0%, #000 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 100% 100%, #000 0%, transparent 70%);
+}
+
+.dark .mb-malha-pontos {
+  background-image: radial-gradient(circle, rgba(147, 211, 248, 0.35) 1.6px, transparent 2.2px);
+}
+
+html.alto-contraste .mb-malha-pontos {
+  display: none;
 }
 
 /**
