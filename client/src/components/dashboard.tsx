@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { useAuthActions } from '@convex-dev/auth/react';
 import { usePermission, useTenantsData } from '@djpanda/convex-tenants/react';
 import { useConvexAuth, useQuery } from 'convex/react';
-import { ArrowLeftRight, History, ListOrdered, LogOut, Pill, Stethoscope } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { MedBridgeWordmark } from '@/components/medbridge-brand';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -19,9 +19,8 @@ import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { ImpersonationBanner } from '@/components/impersonation-banner';
 import { OrganizationContextControl } from '@/components/organization-context-control';
-import { RequestHistory } from '@/components/medications/history';
-import { HospitalHome, MedicationWorkspace } from '@/components/medications/workspace';
-import { PROFILE_LABEL, useHospitalProfile, type HospitalProfile } from '@/lib/hospital-profile';
+import { HospitalHome, ProfileArea } from '@/components/medications/workspace';
+import type { HospitalProfile } from '@/lib/hospital-profile';
 import { api } from '../../../convex/_generated/api';
 
 function HospitalArea({
@@ -31,72 +30,22 @@ function HospitalArea({
   readonly organizationId: string;
   readonly hospitalName: string;
 }) {
-  const [profile, setProfile] = useHospitalProfile(organizationId);
-  const [view, setView] = useState<'fila' | 'historico'>('fila');
+  // Not remembered between visits: every time the site opens, the home page comes first.
+  const [profile, setProfile] = useState<HospitalProfile | null>(null);
 
   if (!profile) {
-    return (
-      <HospitalHome
-        hospitalName={hospitalName}
-        onSelect={(next) => {
-          setView('fila');
-          setProfile(next);
-        }}
-      />
-    );
+    return <HospitalHome hospitalName={hospitalName} onSelect={setProfile} />;
   }
 
-  const isHistory = view === 'historico';
-
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-serif text-2xl font-semibold tracking-tight sm:text-3xl">
-            {hospitalName}
-          </h1>
-          <p className="mt-1 flex items-center gap-2 text-muted-foreground">
-            <ProfileIcon profile={profile} />
-            Perfil: <strong className="text-foreground">{PROFILE_LABEL[profile]}</strong>
-            {isHistory ? <span>· Histórico</span> : null}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={isHistory ? 'default' : 'outline'}
-            onClick={() => setView(isHistory ? 'fila' : 'historico')}
-            data-testid="toggle-history"
-          >
-            {isHistory ? (
-              <>
-                <ListOrdered className="mr-1 h-4 w-4" />
-                {profile === 'farmacia' ? 'Voltar para a fila' : 'Voltar às solicitações'}
-              </>
-            ) : (
-              <>
-                <History className="mr-1 h-4 w-4" />
-                Histórico
-              </>
-            )}
-          </Button>
-          <Button variant="outline" onClick={() => setProfile(null)} data-testid="switch-profile">
-            <ArrowLeftRight className="mr-1 h-4 w-4" />
-            Trocar perfil
-          </Button>
-        </div>
-      </div>
-      {isHistory ? (
-        <RequestHistory organizationId={organizationId} />
-      ) : (
-        <MedicationWorkspace organizationId={organizationId} profile={profile} />
-      )}
-    </div>
+    <ProfileArea
+      key={profile}
+      organizationId={organizationId}
+      hospitalName={hospitalName}
+      profile={profile}
+      onExit={() => setProfile(null)}
+    />
   );
-}
-
-function ProfileIcon({ profile }: { readonly profile: HospitalProfile }) {
-  const Icon = profile === 'farmacia' ? Pill : Stethoscope;
-  return <Icon className="h-4 w-4" />;
 }
 
 export function Dashboard() {

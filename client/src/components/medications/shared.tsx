@@ -26,11 +26,16 @@ export type SectorWithBeds = {
 
 export type MedicationRequest = {
   _id: Id<'medicationRequests'>;
+  number: number | null;
   sectorId: Id<'sectors'>;
   bedId: Id<'beds'>;
   sectorName: string;
   bedLabel: string;
   medication: string;
+  concentration: string | null;
+  pharmaceuticalForm: string | null;
+  acceptedByDevice: string | null;
+  refusalAcknowledgedAt: number | null;
   quantity: number;
   dose: string;
   route: string;
@@ -106,6 +111,44 @@ export function StatusBadge({ status }: { readonly status: RequestStatus }) {
 /** Always spell out sector and bed so "Leito 03" of one sector is never confused with another. */
 export function formatLocation(sectorName: string, bedLabel: string) {
   return `Setor: ${sectorName} · ${bedLabel}`;
+}
+
+/** "Solicitação 12" — the fixed number nursing and pharmacy both use to refer to a request. */
+export function requestTitle(request: Pick<MedicationRequest, 'number'>) {
+  return request.number ? `Solicitação ${request.number}` : 'Solicitação sem número';
+}
+
+/** Every field the nursing team filled in, as label/value rows (the "ficha"). */
+export function requestFields(request: MedicationRequest, now: number) {
+  return [
+    { label: 'Setor e leito', value: formatLocation(request.sectorName, request.bedLabel) },
+    { label: 'Medicamento', value: request.medication },
+    { label: 'Concentração', value: request.concentration ?? '—' },
+    { label: 'Forma farmacêutica', value: request.pharmaceuticalForm ?? '—' },
+    { label: 'Dose', value: request.dose },
+    { label: 'Via de administração', value: request.route },
+    {
+      label: 'Quantidade',
+      value: `${request.quantity} ${request.quantity === 1 ? 'unidade' : 'unidades'}`,
+    },
+    {
+      label: 'Data e horário limite',
+      value: request.deadline ? formatDateTime(request.deadline, now) : 'Sem prazo',
+    },
+    { label: 'Observação', value: request.notes ?? '—' },
+  ];
+}
+
+/** Compact one-line summary: "Dipirona 500 mg/ml · Injetável · 2 ml · Intravenosa". */
+export function medicationSummary(request: MedicationRequest) {
+  return [
+    `${request.medication}${request.concentration ? ` ${request.concentration}` : ''}`,
+    request.pharmaceuticalForm,
+    request.dose,
+    request.route,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 }
 
 /** Re-renders every 30 s so "há 5 min" labels stay current. */
@@ -236,5 +279,29 @@ export function BedFilter({
         </Select>
       </div>
     </div>
+  );
+}
+
+/** Convex wraps server errors ("... Uncaught Error: <message>"); show only the message. */
+export function errorMessage(error: unknown) {
+  if (!(error instanceof Error)) {
+    return 'Algo deu errado';
+  }
+  const match = /Uncaught Error: ([^\n]+)/.exec(error.message);
+  return match?.[1] ?? error.message;
+}
+
+/** Rejected and not yet marked "Ciente" by nursing. */
+export function isUnseenRejection(request: MedicationRequest) {
+  return request.status === 'recusado' && request.refusalAcknowledgedAt === null;
+}
+
+/** What nursing sees in "Acompanhar entregas": in progress, plus rejections not yet seen. */
+export function isTrackedByNursing(request: MedicationRequest) {
+  return (
+    request.status === 'solicitado' ||
+    request.status === 'em_separacao' ||
+    request.status === 'enviado' ||
+    isUnseenRejection(request)
   );
 }

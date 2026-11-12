@@ -11,6 +11,21 @@ export const MEDICATION_ROUTES = [
   'Retal',
 ] as const;
 
+export const PHARMACEUTICAL_FORMS = [
+  'Comprimido',
+  'Cápsula',
+  'Injetável',
+  'Solução oral',
+  'Suspensão oral',
+  'Gotas',
+  'Xarope',
+  'Pomada / creme',
+  'Spray / aerossol',
+  'Supositório',
+  'Adesivo',
+  'Pó para reconstituição',
+] as const;
+
 export type Urgency = 'urgente' | 'prioritario' | 'rotina';
 
 export const URGENCY_RANK: Record<Urgency, number> = {
@@ -29,10 +44,10 @@ export type RequestStatus = 'solicitado' | 'em_separacao' | 'enviado' | 'recebid
 
 export const STATUS_LABEL: Record<RequestStatus, string> = {
   solicitado: 'Solicitado',
-  em_separacao: 'Em separação',
+  em_separacao: 'Em preparação',
   enviado: 'Enviado',
   recebido: 'Recebido',
-  recusado: 'Recusado',
+  recusado: 'Rejeitado',
 };
 
 export const REFUSAL_REASONS = [
@@ -41,6 +56,9 @@ export const REFUSAL_REASONS = [
   'Via de administração incorreta',
   'Solicitação incompleta',
 ] as const;
+
+/** Device ids are random UUIDs generated in the browser. */
+export const MAX_DEVICE_ID_LENGTH = 64;
 
 export function isFinishedStatus(status: RequestStatus) {
   return status === 'recebido' || status === 'recusado';

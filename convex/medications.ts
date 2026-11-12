@@ -2,7 +2,13 @@ import { v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query, type MutationCtx } from './_generated/server';
 import { getHospitalAccess, requireHospitalAccess } from './lib/hospitalAccess';
-import { MEDICATION_ROUTES, URGENCY_RANK, type RequestStatus } from './lib/medicationOptions';
+import {
+  MAX_DEVICE_ID_LENGTH,
+  MEDICATION_ROUTES,
+  PHARMACEUTICAL_FORMS,
+  URGENCY_RANK,
+  type RequestStatus,
+} from './lib/medicationOptions';
 
 const MAX_SECTORS = 50;
 const MAX_BEDS_PER_SECTOR = 100;
@@ -90,11 +96,14 @@ export const listRequests = query({
 
     return requests.map((request) => ({
       _id: request._id,
+      number: request.number ?? null,
       sectorId: request.sectorId,
       bedId: request.bedId,
       sectorName: sectorNames.get(request.sectorId) ?? '—',
       bedLabel: bedLabels.get(request.bedId) ?? '—',
       medication: request.medication,
+      concentration: request.concentration ?? null,
+      pharmaceuticalForm: request.pharmaceuticalForm ?? null,
       quantity: request.quantity,
       dose: request.dose,
       route: request.route,
@@ -103,6 +112,8 @@ export const listRequests = query({
       deadline: request.deadline ?? null,
       status: request.status,
       refusalReason: request.refusalReason ?? null,
+      refusalAcknowledgedAt: request.refusalAcknowledgedAt ?? null,
+      acceptedByDevice: request.acceptedByDevice ?? null,
       createdAt: request.createdAt,
       updatedAt: request.updatedAt,
       separationStartedAt: request.separationStartedAt ?? null,
@@ -113,11 +124,23 @@ export const listRequests = query({
   },
 });
 
+/** Next "Solicitação N" for a hospital. Runs inside the creating mutation, so it is race-free. */
+export async function nextRequestNumber(ctx: MutationCtx, organizationId: string) {
+  const last = await ctx.db
+    .query('medicationRequests')
+    .withIndex('by_org_and_number', (q) => q.eq('organizationId', organizationId))
+    .order('desc')
+    .first();
+  return (last?.number ?? 0) + 1;
+}
+
 export const createRequest = mutation({
   args: {
     organizationId: v.string(),
     bedId: v.id('beds'),
     medication: v.string(),
+    concentration: v.string(),
+    pharmaceuticalForm: v.string(),
     quantity: v.number(),
     dose: v.string(),
     route: v.string(),
@@ -136,10 +159,17 @@ export const createRequest = mutation({
       throw new Error('Leito não encontrado neste hospital');
     }
     const medication = args.medication.trim();
+    const concentration = args.concentration.trim();
     const dose = args.dose.trim();
     const notes = args.notes?.trim();
     if (!medication) {
-      throw new Error('Informe o medicamento');
+      throw new Error('Informe o nome do medicamento');
+    }
+    if (!concentration) {
+      throw new Error('Informe a concentração');
+    }
+    if (!(PHARMACEUTICAL_FORMS as ReadonlyArray<string>).includes(args.pharmaceuticalForm)) {
+      throw new Error('Forma farmacêutica inválida');
     }
     if (!dose) {
       throw new Error('Informe a dose');
@@ -152,11 +182,15 @@ export const createRequest = mutation({
     }
 
     const now = Date.now();
-    return await ctx.db.insert('medicationRequests', {
+    const number = await nextRequestNumber(ctx, args.organizationId);
+    await ctx.db.insert('medicationRequests', {
       organizationId: args.organizationId,
+      number,
       sectorId: bed.sectorId,
       bedId: bed._id,
       medication,
+      concentration,
+      pharmaceuticalForm: args.pharmaceuticalForm,
       quantity: args.quantity,
       dose,
       route: args.route,
@@ -169,6 +203,7 @@ export const createRequest = mutation({
       createdAt: now,
       updatedAt: now,
     });
+    return { number };
   },
 });
 
@@ -195,20 +230,37 @@ const transitionArgs = {
   requestId: v.id('medicationRequests'),
 };
 
-/** Farmácia: Solicitado → Em separação. */
-export const startSeparation = mutation({
-  args: transitionArgs,
-  handler: async (ctx, { organizationId, requestId }) => {
+function requireDeviceId(deviceId: string) {
+  const trimmed = deviceId.trim();
+  if (!trimmed || trimmed.length > MAX_DEVICE_ID_LENGTH) {
+    throw new Error('Aparelho não identificado. Recarregue a página e tente de novo.');
+  }
+  return trimmed;
+}
+
+const IN_PROGRESS_ELSEWHERE =
+  'Solicitação em andamento: ela já foi aceita por outro aparelho da farmácia.';
+
+/**
+ * Farmácia: Solicitado → Em preparação. The accepting device "holds" the request; if two
+ * devices accept at the same time, Convex runs the mutations one after the other, so the second
+ * one sees "em_separacao" and fails.
+ */
+export const acceptRequest = mutation({
+  args: { ...transitionArgs, deviceId: v.string() },
+  handler: async (ctx, { organizationId, requestId, deviceId }) => {
+    const device = requireDeviceId(deviceId);
     await loadRequestForTransition(
       ctx,
       organizationId,
       requestId,
       ['solicitado'],
-      'Só é possível separar uma solicitação que ainda está como "Solicitado"'
+      IN_PROGRESS_ELSEWHERE
     );
     const now = Date.now();
     await ctx.db.patch('medicationRequests', requestId, {
       status: 'em_separacao',
+      acceptedByDevice: device,
       separationStartedAt: now,
       updatedAt: now,
     });
@@ -216,17 +268,21 @@ export const startSeparation = mutation({
   },
 });
 
-/** Farmácia: Em separação → Enviado. */
+/** Farmácia (only the device that accepted): Em preparação → Enviado. */
 export const markSent = mutation({
-  args: transitionArgs,
-  handler: async (ctx, { organizationId, requestId }) => {
-    await loadRequestForTransition(
+  args: { ...transitionArgs, deviceId: v.string() },
+  handler: async (ctx, { organizationId, requestId, deviceId }) => {
+    const device = requireDeviceId(deviceId);
+    const request = await loadRequestForTransition(
       ctx,
       organizationId,
       requestId,
       ['em_separacao'],
-      'Só é possível enviar uma solicitação que está "Em separação"'
+      'Só é possível enviar uma solicitação que está "Em preparação"'
     );
+    if (request.acceptedByDevice && request.acceptedByDevice !== device) {
+      throw new Error(IN_PROGRESS_ELSEWHERE);
+    }
     const now = Date.now();
     await ctx.db.patch('medicationRequests', requestId, {
       status: 'enviado',
@@ -237,20 +293,31 @@ export const markSent = mutation({
   },
 });
 
-/** Farmácia: Solicitado ou Em separação → Recusado, with a reason the nursing team will see. */
+/**
+ * Farmácia: Rejeitar, with a justification the nursing team will see. Allowed while the request
+ * is still "Solicitado", or "Em preparação" by the device that accepted it.
+ */
 export const refuse = mutation({
-  args: { ...transitionArgs, reason: v.string() },
-  handler: async (ctx, { organizationId, requestId, reason }) => {
-    await loadRequestForTransition(
+  args: { ...transitionArgs, reason: v.string(), deviceId: v.string() },
+  handler: async (ctx, { organizationId, requestId, reason, deviceId }) => {
+    const device = requireDeviceId(deviceId);
+    const request = await loadRequestForTransition(
       ctx,
       organizationId,
       requestId,
       ['solicitado', 'em_separacao'],
-      'Só é possível recusar uma solicitação antes de ela ser enviada'
+      'Só é possível rejeitar uma solicitação antes de ela ser enviada'
     );
+    if (
+      request.status === 'em_separacao' &&
+      request.acceptedByDevice &&
+      request.acceptedByDevice !== device
+    ) {
+      throw new Error(IN_PROGRESS_ELSEWHERE);
+    }
     const trimmed = reason.trim();
     if (!trimmed) {
-      throw new Error('Informe o motivo da recusa');
+      throw new Error('Escreva a justificativa da rejeição');
     }
     const now = Date.now();
     await ctx.db.patch('medicationRequests', requestId, {
@@ -280,6 +347,24 @@ export const confirmReceived = mutation({
       receivedAt: now,
       updatedAt: now,
     });
+    return null;
+  },
+});
+
+/** Enfermagem: "Ciente" on a rejected request, moving it from "Acompanhar entregas" to Histórico. */
+export const acknowledgeRefusal = mutation({
+  args: transitionArgs,
+  handler: async (ctx, { organizationId, requestId }) => {
+    const request = await loadRequestForTransition(
+      ctx,
+      organizationId,
+      requestId,
+      ['recusado'],
+      'Só é possível marcar como ciente uma solicitação rejeitada'
+    );
+    if (request.refusalAcknowledgedAt === undefined) {
+      await ctx.db.patch('medicationRequests', requestId, { refusalAcknowledgedAt: Date.now() });
+    }
     return null;
   },
 });

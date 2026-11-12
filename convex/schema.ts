@@ -75,10 +75,18 @@ const schema = defineSchema({
 
   medicationRequests: defineTable({
     organizationId: v.string(),
+    // Fixed per-hospital number shown as "Solicitação 12". Optional only so requests created
+    // before numbering existed still load; `pnpm run demo:reset` renumbers demo data.
+    number: v.optional(v.number()),
     sectorId: v.id('sectors'),
     bedId: v.id('beds'),
     medication: v.string(),
+    // Strength, e.g. "500 mg/ml".
+    concentration: v.optional(v.string()),
+    // Pharmaceutical form, e.g. "Comprimido", "Injetável".
+    pharmaceuticalForm: v.optional(v.string()),
     quantity: v.number(),
+    // Amount the patient receives, e.g. "2 ml", "1 comprimido".
     dose: v.string(),
     route: v.string(),
     urgency: v.union(v.literal('urgente'), v.literal('prioritario'), v.literal('rotina')),
@@ -95,6 +103,12 @@ const schema = defineSchema({
       v.literal('recusado')
     ),
     refusalReason: v.optional(v.string()),
+    // When nursing clicked "Ciente" on a rejected request; until then it stays in
+    // "Acompanhar entregas" so the rejection is not missed.
+    refusalAcknowledgedAt: v.optional(v.number()),
+    // Device (browser) that accepted the request; only it can mark it as sent. Other devices
+    // see the request as "Solicitação em andamento".
+    acceptedByDevice: v.optional(v.string()),
     createdBy: v.id('users'),
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -104,7 +118,8 @@ const schema = defineSchema({
     refusedAt: v.optional(v.number()),
   })
     .index('by_org_and_urgencyRank', ['organizationId', 'urgencyRank'])
-    .index('by_org_and_bed', ['organizationId', 'bedId']),
+    .index('by_org_and_bed', ['organizationId', 'bedId'])
+    .index('by_org_and_number', ['organizationId', 'number']),
 });
 
 export default schema;

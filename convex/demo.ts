@@ -9,6 +9,8 @@ import { ensureUserByEmail } from './lib/users';
  * Demo data for the pitch: two fictional hospitals, each with one shared account (the hospital
  * login), sectors with explicitly named beds, and a few requests at different steps.
  * Safe to run again: a hospital that already has sectors is left as it is.
+ * Requests already "Em preparação" are held by a pretend second pharmacy device, so the demo
+ * shows the "Solicitação em andamento" lock.
  */
 
 type DemoRequest = {
@@ -16,6 +18,7 @@ type DemoRequest = {
   bed: string;
   medication: string;
   quantity: number;
+  /** Concentration, e.g. "1 g"; dose and form come from DEMO_DETAILS by medication name. */
   dose: string;
   route: string;
   urgency: Urgency;
@@ -34,6 +37,24 @@ type DemoHospital = {
   sectors: ReadonlyArray<{ name: string; beds: number }>;
   requests: ReadonlyArray<DemoRequest>;
 };
+
+/** Pharmaceutical form and the dose the patient receives, per demo medication. */
+const DEMO_DETAILS: Record<string, { form: string; dose: string }> = {
+  Noradrenalina: { form: 'Injetável', dose: '8 ml em bomba de infusão' },
+  Dipirona: { form: 'Injetável', dose: '2 ml' },
+  Ceftriaxona: { form: 'Pó para reconstituição', dose: '1 frasco-ampola' },
+  Enoxaparina: { form: 'Injetável', dose: '0,4 ml' },
+  Omeprazol: { form: 'Cápsula', dose: '1 cápsula' },
+  Losartana: { form: 'Comprimido', dose: '1 comprimido' },
+  Paracetamol: { form: 'Comprimido', dose: '1 comprimido' },
+  Amoxicilina: { form: 'Cápsula', dose: '10 cápsulas' },
+  Salbutamol: { form: 'Spray / aerossol', dose: '2 jatos' },
+  Ondansetrona: { form: 'Injetável', dose: '4 ml' },
+  'Sulfato ferroso': { form: 'Comprimido', dose: '1 comprimido' },
+};
+
+/** Stands for a second pharmacy device, so the demo shows a request locked as "em andamento". */
+const OTHER_PHARMACY_DEVICE = 'demo-outro-aparelho-da-farmacia';
 
 export const DEMO_HOSPITALS: ReadonlyArray<DemoHospital> = [
   {
@@ -249,7 +270,9 @@ async function seedHospitalStructure(
   }
 
   const now = Date.now();
-  for (const request of hospital.requests) {
+  // Number requests in the order they were made: the oldest is "Solicitação 1".
+  const byAge = hospital.requests.toSorted((left, right) => right.minutesAgo - left.minutesAgo);
+  for (const [index, request] of byAge.entries()) {
     const location = bedIds.get(`${request.sector}|${request.bed}`);
     if (!location) {
       throw new Error(`Leito de exemplo inexistente: ${request.sector} · ${request.bed}`);
@@ -262,13 +285,18 @@ async function seedHospitalStructure(
         request.status !== 'recusado' && order.indexOf(request.status) >= order.indexOf(status)
       );
     };
+    const details = DEMO_DETAILS[request.medication] ?? { form: 'Comprimido', dose: '1 unidade' };
     await ctx.db.insert('medicationRequests', {
       organizationId,
+      number: index + 1,
       sectorId: location.sectorId,
       bedId: location.bedId,
       medication: request.medication,
+      concentration: request.dose,
+      pharmaceuticalForm: details.form,
       quantity: request.quantity,
-      dose: request.dose,
+      dose: details.dose,
+      acceptedByDevice: reached('em_separacao') ? OTHER_PHARMACY_DEVICE : undefined,
       route: request.route,
       urgency: request.urgency,
       urgencyRank: URGENCY_RANK[request.urgency],
