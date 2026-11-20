@@ -6,13 +6,15 @@ import {
   useTenantsData,
 } from '@djpanda/convex-tenants/react';
 import { MedBridgeWordmark } from '@/components/medbridge-brand';
+import { SectorsSettings } from '@/components/medications/sectors-settings';
 import { Button } from '@/components/ui/button';
 import { ImpersonationBanner } from '@/components/impersonation-banner';
 
-type SettingsSection = 'members' | 'teams' | 'org';
+type SettingsSection = 'members' | 'teams' | 'org' | 'setores';
 
 function SettingsNav({ section }: { section: SettingsSection }) {
   const links: Array<{ to: string; label: string; id: SettingsSection }> = [
+    { to: '/settings/setores', label: 'Setores e leitos', id: 'setores' },
     { to: '/settings/members', label: 'Membros', id: 'members' },
     { to: '/settings/teams', label: 'Times', id: 'teams' },
     { to: '/settings/org', label: 'Organização', id: 'org' },
@@ -71,6 +73,9 @@ export function OrgSettingsPage({ section }: { section: SettingsSection }) {
         {section === 'members' ? <MembersSection /> : null}
         {section === 'teams' ? <TeamsSection /> : null}
         {section === 'org' ? <OrgSettingsPanel /> : null}
+        {section === 'setores' ? (
+          <SectorsSettings organizationId={currentOrganization._id} />
+        ) : null}
       </main>
     </div>
   );
@@ -86,4 +91,8 @@ export function OrgSettingsTeamsPage() {
 
 export function OrgSettingsOrgPage() {
   return <OrgSettingsPage section="org" />;
+}
+
+export function OrgSettingsSectorsPage() {
+  return <OrgSettingsPage section="setores" />;
 }

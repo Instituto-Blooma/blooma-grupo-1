@@ -93,9 +93,9 @@ export function Dashboard() {
           </div>
           <div className="flex items-center gap-2">
             {canManageSettings.allowed ? (
-              <Link to="/settings/members">
+              <Link to="/settings/setores">
                 <Button variant="ghost" size="sm" data-testid="nav-settings-members">
-                  Membros
+                  Configurações
                 </Button>
               </Link>
             ) : null}

@@ -1,6 +1,7 @@
 import type { Id } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
-import { isPlatformAdmin, requireUserId, resolveActingUserId } from './auth';
+import { authz } from '../authz';
+import { isPlatformAdmin, orgScope, requireUserId, resolveActingUserId } from './auth';
 import { tenantsClient } from './tenantsClient';
 
 /**
@@ -26,6 +27,27 @@ export async function requireHospitalAccess(
   const userId = await requireUserId(ctx);
   if (!(await isHospitalMember(ctx, organizationId, userId))) {
     throw new Error('Sem acesso a este hospital');
+  }
+  return userId;
+}
+
+/**
+ * Changing the hospital's structure (sectors and beds) needs the same permission as the other
+ * settings pages: `settings:manage` (the hospital account is the organization's admin).
+ */
+export async function requireHospitalSettingsAccess(
+  ctx: QueryCtx | MutationCtx,
+  organizationId: string
+): Promise<Id<'users'>> {
+  const userId = await requireHospitalAccess(ctx, organizationId);
+  if (await isPlatformAdmin(ctx, userId)) {
+    return userId;
+  }
+  const allowed = await authz
+    .withTenant(organizationId)
+    .can(ctx, userId, 'settings:manage', orgScope(organizationId));
+  if (!allowed) {
+    throw new Error('Só a administração do hospital pode alterar setores e leitos');
   }
   return userId;
 }

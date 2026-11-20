@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query, type MutationCtx } from './_generated/server';
+import { MAX_BEDS_PER_SECTOR, MAX_SECTORS, isActive } from './hospitalStructure';
 import { getHospitalAccess, requireHospitalAccess } from './lib/hospitalAccess';
 import {
   MAX_DEVICE_ID_LENGTH,
@@ -10,8 +11,6 @@ import {
   type RequestStatus,
 } from './lib/medicationOptions';
 
-const MAX_SECTORS = 50;
-const MAX_BEDS_PER_SECTOR = 100;
 const MAX_REQUESTS = 300;
 
 const urgencyValidator = v.union(
@@ -20,26 +19,33 @@ const urgencyValidator = v.union(
   v.literal('rotina')
 );
 
-/** Sectors of a hospital, each with its beds, in display order. */
+/**
+ * Active sectors of a hospital, each with its active beds, in display order. Deactivated ones
+ * (see hospitalStructure.ts) stay out of the filter and the request form.
+ */
 export const listSectorsWithBeds = query({
   args: { organizationId: v.string() },
   handler: async (ctx, { organizationId }) => {
     if (!(await getHospitalAccess(ctx, organizationId))) {
       return [];
     }
-    const sectors = await ctx.db
-      .query('sectors')
-      .withIndex('by_org_and_sortOrder', (q) => q.eq('organizationId', organizationId))
-      .take(MAX_SECTORS);
+    const sectors = (
+      await ctx.db
+        .query('sectors')
+        .withIndex('by_org_and_sortOrder', (q) => q.eq('organizationId', organizationId))
+        .take(MAX_SECTORS * 2)
+    ).filter(isActive);
 
     return await Promise.all(
       sectors.map(async (sector) => {
-        const beds = await ctx.db
-          .query('beds')
-          .withIndex('by_org_and_sector_and_sortOrder', (q) =>
-            q.eq('organizationId', organizationId).eq('sectorId', sector._id)
-          )
-          .take(MAX_BEDS_PER_SECTOR);
+        const beds = (
+          await ctx.db
+            .query('beds')
+            .withIndex('by_org_and_sector_and_sortOrder', (q) =>
+              q.eq('organizationId', organizationId).eq('sectorId', sector._id)
+            )
+            .take(MAX_BEDS_PER_SECTOR * 2)
+        ).filter(isActive);
         return {
           _id: sector._id,
           name: sector.name,
@@ -97,6 +103,10 @@ export const listRequests = query({
     return requests.map((request) => ({
       _id: request._id,
       number: request.number ?? null,
+      itemIndex: request.itemIndex ?? 1,
+      itemCount: request.itemCount ?? 1,
+      requesterName: request.requesterName ?? null,
+      requesterCoren: request.requesterCoren ?? null,
       sectorId: request.sectorId,
       bedId: request.bedId,
       sectorName: sectorNames.get(request.sectorId) ?? '—',
@@ -134,76 +144,125 @@ export async function nextRequestNumber(ctx: MutationCtx, organizationId: string
   return (last?.number ?? 0) + 1;
 }
 
-export const createRequest = mutation({
+const MAX_ITEMS_PER_PRESCRIPTION = 20;
+const MAX_IDENTIFICATION_LENGTH = 80;
+
+const itemValidator = v.object({
+  medication: v.string(),
+  concentration: v.string(),
+  pharmaceuticalForm: v.string(),
+  quantity: v.number(),
+  dose: v.string(),
+  route: v.string(),
+  urgency: urgencyValidator,
+  notes: v.optional(v.string()),
+  deadline: v.optional(v.number()),
+});
+
+function cleanItem(item: typeof itemValidator.type, position: number, total: number) {
+  const label = total > 1 ? ` (medicamento ${position})` : '';
+  const medication = item.medication.trim();
+  const concentration = item.concentration.trim();
+  const dose = item.dose.trim();
+  const notes = item.notes?.trim();
+  if (!medication) {
+    throw new Error(`Informe o nome do medicamento${label}`);
+  }
+  if (!concentration) {
+    throw new Error(`Informe a concentração${label}`);
+  }
+  if (!(PHARMACEUTICAL_FORMS as ReadonlyArray<string>).includes(item.pharmaceuticalForm)) {
+    throw new Error(`Forma farmacêutica inválida${label}`);
+  }
+  if (!dose) {
+    throw new Error(`Informe a dose${label}`);
+  }
+  if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 999) {
+    throw new Error(`A quantidade deve ser um número inteiro entre 1 e 999${label}`);
+  }
+  if (!(MEDICATION_ROUTES as ReadonlyArray<string>).includes(item.route)) {
+    throw new Error(`Via de administração inválida${label}`);
+  }
+  if (item.deadline !== undefined && !Number.isFinite(item.deadline)) {
+    throw new Error(`Data e horário limite inválidos${label}`);
+  }
+  return { ...item, medication, concentration, dose, notes: notes ? notes : undefined };
+}
+
+function cleanIdentification(value: string, label: 'Nome completo' | 'COREN') {
+  const trimmed = value.replace(/\s+/g, ' ').trim();
+  if (!trimmed) {
+    throw new Error(label === 'COREN' ? 'Informe o COREN' : 'Informe o nome completo');
+  }
+  if (trimmed.length > MAX_IDENTIFICATION_LENGTH) {
+    throw new Error(`${label} pode ter até ${MAX_IDENTIFICATION_LENGTH} caracteres`);
+  }
+  return trimmed;
+}
+
+/**
+ * Enfermagem: one prescription ("Solicitação N") with one or more medications for the same bed.
+ * Each medication becomes its own item with its own urgency, deadline and status, sharing the
+ * number, bed and the identification of the professional who asked.
+ */
+export const createPrescription = mutation({
   args: {
     organizationId: v.string(),
     bedId: v.id('beds'),
-    medication: v.string(),
-    concentration: v.string(),
-    pharmaceuticalForm: v.string(),
-    quantity: v.number(),
-    dose: v.string(),
-    route: v.string(),
-    urgency: urgencyValidator,
-    notes: v.optional(v.string()),
-    deadline: v.optional(v.number()),
+    requesterName: v.string(),
+    requesterCoren: v.string(),
+    items: v.array(itemValidator),
   },
   handler: async (ctx, args) => {
     const userId = await requireHospitalAccess(ctx, args.organizationId);
-    if (args.deadline !== undefined && !Number.isFinite(args.deadline)) {
-      throw new Error('Data e horário limite inválidos');
+    const requesterName = cleanIdentification(args.requesterName, 'Nome completo');
+    const requesterCoren = cleanIdentification(args.requesterCoren, 'COREN');
+    if (args.items.length === 0) {
+      throw new Error('Adicione pelo menos um medicamento');
+    }
+    if (args.items.length > MAX_ITEMS_PER_PRESCRIPTION) {
+      throw new Error(`Uma prescrição pode ter até ${MAX_ITEMS_PER_PRESCRIPTION} medicamentos`);
     }
 
     const bed = await ctx.db.get(args.bedId);
     if (!bed || bed.organizationId !== args.organizationId) {
       throw new Error('Leito não encontrado neste hospital');
     }
-    const medication = args.medication.trim();
-    const concentration = args.concentration.trim();
-    const dose = args.dose.trim();
-    const notes = args.notes?.trim();
-    if (!medication) {
-      throw new Error('Informe o nome do medicamento');
+    const bedSector = await ctx.db.get(bed.sectorId);
+    if (!isActive(bed) || !bedSector || !isActive(bedSector)) {
+      throw new Error('Este leito está desativado. Escolha outro leito.');
     }
-    if (!concentration) {
-      throw new Error('Informe a concentração');
-    }
-    if (!(PHARMACEUTICAL_FORMS as ReadonlyArray<string>).includes(args.pharmaceuticalForm)) {
-      throw new Error('Forma farmacêutica inválida');
-    }
-    if (!dose) {
-      throw new Error('Informe a dose');
-    }
-    if (!Number.isInteger(args.quantity) || args.quantity < 1 || args.quantity > 999) {
-      throw new Error('A quantidade deve ser um número inteiro entre 1 e 999');
-    }
-    if (!(MEDICATION_ROUTES as ReadonlyArray<string>).includes(args.route)) {
-      throw new Error('Via de administração inválida');
-    }
+    const items = args.items.map((item, index) => cleanItem(item, index + 1, args.items.length));
 
     const now = Date.now();
     const number = await nextRequestNumber(ctx, args.organizationId);
-    await ctx.db.insert('medicationRequests', {
-      organizationId: args.organizationId,
-      number,
-      sectorId: bed.sectorId,
-      bedId: bed._id,
-      medication,
-      concentration,
-      pharmaceuticalForm: args.pharmaceuticalForm,
-      quantity: args.quantity,
-      dose,
-      route: args.route,
-      urgency: args.urgency,
-      urgencyRank: URGENCY_RANK[args.urgency],
-      notes: notes ? notes : undefined,
-      deadline: args.deadline,
-      status: 'solicitado',
-      createdBy: userId,
-      createdAt: now,
-      updatedAt: now,
-    });
-    return { number };
+    for (const [index, item] of items.entries()) {
+      await ctx.db.insert('medicationRequests', {
+        organizationId: args.organizationId,
+        number,
+        itemIndex: index + 1,
+        itemCount: items.length,
+        requesterName,
+        requesterCoren,
+        sectorId: bed.sectorId,
+        bedId: bed._id,
+        medication: item.medication,
+        concentration: item.concentration,
+        pharmaceuticalForm: item.pharmaceuticalForm,
+        quantity: item.quantity,
+        dose: item.dose,
+        route: item.route,
+        urgency: item.urgency,
+        urgencyRank: URGENCY_RANK[item.urgency],
+        notes: item.notes,
+        deadline: item.deadline,
+        status: 'solicitado',
+        createdBy: userId,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+    return { number, itemCount: items.length };
   },
 });
 
@@ -241,24 +300,48 @@ function requireDeviceId(deviceId: string) {
 const IN_PROGRESS_ELSEWHERE =
   'Solicitação em andamento: ela já foi aceita por outro aparelho da farmácia.';
 
+/** Every item of the prescription that `request` belongs to (just itself for old requests). */
+async function prescriptionItems(ctx: MutationCtx, request: Doc<'medicationRequests'>) {
+  if (request.number === undefined) {
+    return [request];
+  }
+  return await ctx.db
+    .query('medicationRequests')
+    .withIndex('by_org_and_number', (q) =>
+      q.eq('organizationId', request.organizationId).eq('number', request.number)
+    )
+    .take(MAX_ITEMS_PER_PRESCRIPTION * 2);
+}
+
 /**
- * Farmácia: Solicitado → Em preparação. The accepting device "holds" the request; if two
- * devices accept at the same time, Convex runs the mutations one after the other, so the second
- * one sees "em_separacao" and fails.
+ * Farmácia: accepts one medication of a prescription ("Solicitado" → "Em preparação"). The item is
+ * held by this device, and the whole prescription shows "Solicitação em andamento" on the other
+ * devices, so two pharmacists never work on the same prescription. If two devices accept at the
+ * same time, Convex runs the mutations one after the other and the second one finds it held.
  */
 export const acceptRequest = mutation({
   args: { ...transitionArgs, deviceId: v.string() },
   handler: async (ctx, { organizationId, requestId, deviceId }) => {
     const device = requireDeviceId(deviceId);
-    await loadRequestForTransition(
+    const request = await loadRequestForTransition(
       ctx,
       organizationId,
       requestId,
       ['solicitado'],
-      IN_PROGRESS_ELSEWHERE
+      'Este medicamento não está mais aguardando a farmácia'
     );
+    const items = await prescriptionItems(ctx, request);
+    const heldElsewhere = items.some(
+      (item) =>
+        item.status === 'em_separacao' &&
+        item.acceptedByDevice !== undefined &&
+        item.acceptedByDevice !== device
+    );
+    if (heldElsewhere) {
+      throw new Error(IN_PROGRESS_ELSEWHERE);
+    }
     const now = Date.now();
-    await ctx.db.patch('medicationRequests', requestId, {
+    await ctx.db.patch('medicationRequests', request._id, {
       status: 'em_separacao',
       acceptedByDevice: device,
       separationStartedAt: now,
@@ -308,11 +391,14 @@ export const refuse = mutation({
       ['solicitado', 'em_separacao'],
       'Só é possível rejeitar uma solicitação antes de ela ser enviada'
     );
-    if (
-      request.status === 'em_separacao' &&
-      request.acceptedByDevice &&
-      request.acceptedByDevice !== device
-    ) {
+    const items = await prescriptionItems(ctx, request);
+    const heldElsewhere = items.some(
+      (item) =>
+        item.status === 'em_separacao' &&
+        item.acceptedByDevice !== undefined &&
+        item.acceptedByDevice !== device
+    );
+    if (heldElsewhere) {
       throw new Error(IN_PROGRESS_ELSEWHERE);
     }
     const trimmed = reason.trim();

@@ -28,7 +28,16 @@ type DemoRequest = {
   refusalReason?: string;
   /** Minutes from now until the deadline; omit for "sem prazo". */
   deadlineInMinutes?: number;
+  /** Items with the same key form one prescription with several medications (same bed). */
+  prescription?: string;
 };
+
+/** Fictional nursing professionals used as the requester of demo prescriptions. */
+const DEMO_NURSES = [
+  { name: 'Ana Paula Ribeiro', coren: 'COREN-SP 245.871' },
+  { name: 'Carlos Eduardo Lima', coren: 'COREN-SP 198.334' },
+  { name: 'Juliana Mendes Costa', coren: 'COREN-SP 312.509' },
+] as const;
 
 type DemoHospital = {
   name: string;
@@ -51,6 +60,8 @@ const DEMO_DETAILS: Record<string, { form: string; dose: string }> = {
   Salbutamol: { form: 'Spray / aerossol', dose: '2 jatos' },
   Ondansetrona: { form: 'Injetável', dose: '4 ml' },
   'Sulfato ferroso': { form: 'Comprimido', dose: '1 comprimido' },
+  Midazolam: { form: 'Injetável', dose: '3 ml' },
+  Pantoprazol: { form: 'Pó para reconstituição', dose: '1 frasco-ampola' },
 };
 
 /** Stands for a second pharmacy device, so the demo shows a request locked as "em andamento". */
@@ -79,6 +90,33 @@ export const DEMO_HOSPITALS: ReadonlyArray<DemoHospital> = [
         minutesAgo: 6,
         deadlineInMinutes: 15,
         notes: 'Paciente instável, prioridade máxima.',
+        prescription: 'uti-leito-02',
+      },
+      {
+        // Same prescription as the Noradrenalina above: one request with 3 medications.
+        sector: 'UTI Adulto',
+        bed: 'Leito 02',
+        medication: 'Midazolam',
+        quantity: 1,
+        dose: '5 mg/ml',
+        route: 'Intravenosa',
+        urgency: 'prioritario',
+        status: 'solicitado',
+        minutesAgo: 6,
+        deadlineInMinutes: 60,
+        prescription: 'uti-leito-02',
+      },
+      {
+        sector: 'UTI Adulto',
+        bed: 'Leito 02',
+        medication: 'Pantoprazol',
+        quantity: 1,
+        dose: '40 mg',
+        route: 'Intravenosa',
+        urgency: 'rotina',
+        status: 'solicitado',
+        minutesAgo: 6,
+        prescription: 'uti-leito-02',
       },
       {
         sector: 'Pronto-Socorro',
@@ -270,9 +308,26 @@ async function seedHospitalStructure(
   }
 
   const now = Date.now();
-  // Number requests in the order they were made: the oldest is "Solicitação 1".
-  const byAge = hospital.requests.toSorted((left, right) => right.minutesAgo - left.minutesAgo);
-  for (const [index, request] of byAge.entries()) {
+  // Group items that belong to the same prescription, then number prescriptions in the order
+  // they were made: the oldest is "Solicitação 1".
+  const groups = new Map<string, DemoRequest[]>();
+  for (const [index, request] of hospital.requests.entries()) {
+    const key = request.prescription ?? `item-${index}`;
+    groups.set(key, [...(groups.get(key) ?? []), request]);
+  }
+  const prescriptions = [...groups.values()].toSorted(
+    (left, right) => (right[0]?.minutesAgo ?? 0) - (left[0]?.minutesAgo ?? 0)
+  );
+  const items = prescriptions.flatMap((group, groupIndex) =>
+    group.map((request, itemIndex) => ({
+      request,
+      number: groupIndex + 1,
+      itemIndex: itemIndex + 1,
+      itemCount: group.length,
+      requester: DEMO_NURSES[groupIndex % DEMO_NURSES.length] ?? DEMO_NURSES[0],
+    }))
+  );
+  for (const { request, number, itemIndex, itemCount, requester } of items) {
     const location = bedIds.get(`${request.sector}|${request.bed}`);
     if (!location) {
       throw new Error(`Leito de exemplo inexistente: ${request.sector} · ${request.bed}`);
@@ -288,7 +343,11 @@ async function seedHospitalStructure(
     const details = DEMO_DETAILS[request.medication] ?? { form: 'Comprimido', dose: '1 unidade' };
     await ctx.db.insert('medicationRequests', {
       organizationId,
-      number: index + 1,
+      number,
+      itemIndex,
+      itemCount,
+      requesterName: requester?.name,
+      requesterCoren: requester?.coren,
       sectorId: location.sectorId,
       bedId: location.bedId,
       medication: request.medication,

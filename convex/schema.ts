@@ -63,6 +63,8 @@ const schema = defineSchema({
     organizationId: v.string(),
     name: v.string(),
     sortOrder: v.number(),
+    // false = desativado (kept because requests reference it); missing = active.
+    active: v.optional(v.boolean()),
   }).index('by_org_and_sortOrder', ['organizationId', 'sortOrder']),
 
   // Beds belong to one sector of one hospital, e.g. "Leito 03".
@@ -71,6 +73,8 @@ const schema = defineSchema({
     sectorId: v.id('sectors'),
     label: v.string(),
     sortOrder: v.number(),
+    // false = desativado (kept because requests reference it); missing = active.
+    active: v.optional(v.boolean()),
   }).index('by_org_and_sector_and_sortOrder', ['organizationId', 'sectorId', 'sortOrder']),
 
   medicationRequests: defineTable({
@@ -78,6 +82,13 @@ const schema = defineSchema({
     // Fixed per-hospital number shown as "Solicitação 12". Optional only so requests created
     // before numbering existed still load; `pnpm run demo:reset` renumbers demo data.
     number: v.optional(v.number()),
+    // A prescription ("Solicitação N") can hold several medications: every item shares the
+    // number, sector and bed, and has its own position (1..itemCount), details and status.
+    itemIndex: v.optional(v.number()),
+    itemCount: v.optional(v.number()),
+    // Who made the request (identification field on the form).
+    requesterName: v.optional(v.string()),
+    requesterCoren: v.optional(v.string()),
     sectorId: v.id('sectors'),
     bedId: v.id('beds'),
     medication: v.string(),

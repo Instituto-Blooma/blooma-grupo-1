@@ -9,7 +9,8 @@ import {
   formatLocation,
   matchesBedFilter,
   medicationSummary,
-  requestTitle,
+  itemTitle,
+  requesterLabel,
   type BedFilterValue,
   type MedicationRequest,
 } from './shared';
@@ -49,7 +50,7 @@ function HistoryItem({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-lg font-semibold">{requestTitle(request)}</span>
+            <span className="text-lg font-semibold">{itemTitle(request)}</span>
             <UrgencyBadge urgency={request.urgency} />
             <StatusBadge status={request.status} />
           </div>
@@ -98,6 +99,11 @@ function HistoryItem({
       {request.deadline ? (
         <p className="mt-3 text-sm text-muted-foreground">
           Prazo informado: {formatDateTime(request.deadline, now)}
+        </p>
+      ) : null}
+      {requesterLabel(request) ? (
+        <p className="mt-1 text-sm text-muted-foreground">
+          Solicitado por {requesterLabel(request)}
         </p>
       ) : null}
       {request.notes ? (

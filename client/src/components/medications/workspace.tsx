@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { ArrowLeftRight, History, Home, Pill, Stethoscope } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
+import { ArrowLeftRight, History, Home, Pill, Stethoscope, Truck } from 'lucide-react';
 import { isFinishedStatus } from '../../../../convex/lib/medicationOptions';
 import { MedBridgeWordmark } from '@/components/medbridge-brand';
 import { Button } from '@/components/ui/button';
 import { PROFILE_LABEL, type HospitalProfile } from '@/lib/hospital-profile';
 import { RequestHistory } from './history';
-import { NursingDashboard, RequestForm, TrackDeliveries } from './nursing';
+import { NursingDashboard, PrescriptionForm, TrackDeliveries } from './nursing';
 import { PharmacyQueue } from './pharmacy';
 import {
   BedFilter,
+  groupPrescriptions,
   isUnseenRejection,
   matchesBedFilter,
   useHospitalData,
@@ -58,7 +60,7 @@ export function HospitalHome({
 }
 
 type NursingScreen = 'painel' | 'solicitar' | 'acompanhar' | 'historico';
-type PharmacyScreen = 'fila' | 'historico';
+type PharmacyScreen = 'fila' | 'acompanhar' | 'historico';
 
 /**
  * Everything inside one profile. The bed filter and the Histórico button stay pinned at the top
@@ -87,7 +89,9 @@ export function ProfileArea({
   const isLoading = sectors === undefined || requests === undefined;
   const ProfileIcon = isNursing ? Stethoscope : Pill;
   const visible = (requests ?? []).filter((request) => matchesBedFilter(request, filter));
-  const activeCount = visible.filter((request) => !isFinishedStatus(request.status)).length;
+  const activeCount = groupPrescriptions(visible).filter((prescription) =>
+    prescription.items.some((item) => !isFinishedStatus(item.status))
+  ).length;
   const rejectedCount = visible.filter(isUnseenRejection).length;
 
   return (
@@ -111,6 +115,17 @@ export function ProfileArea({
               >
                 <Home className="mr-2 h-4 w-4" />
                 {isNursing ? 'Painel' : 'Solicitações'}
+              </Button>
+            ) : null}
+            {!isNursing ? (
+              <Button
+                variant={screen === 'acompanhar' ? 'default' : 'outline'}
+                size="lg"
+                onClick={() => setScreen('acompanhar')}
+                data-testid="go-tracking"
+              >
+                <Truck className="mr-2 h-4 w-4" />
+                Acompanhar entregas
               </Button>
             ) : null}
             <Button
@@ -137,24 +152,28 @@ export function ProfileArea({
         </div>
       ) : sectors.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          Este hospital ainda não tem setores e leitos cadastrados.
+          Este hospital ainda não tem setores e leitos cadastrados.{' '}
+          <Link to="/settings/setores" className="font-medium text-primary underline">
+            Cadastrar setores e leitos
+          </Link>
         </div>
       ) : screen === 'historico' ? (
         <RequestHistory requests={requests} filter={filter} now={now} />
-      ) : isNursing && screen === 'solicitar' ? (
-        <RequestForm
-          organizationId={organizationId}
-          sectors={sectors}
-          preset={filter}
-          onCancel={() => setScreen('painel')}
-          onCreated={() => setScreen('acompanhar')}
-        />
-      ) : isNursing && screen === 'acompanhar' ? (
+      ) : screen === 'acompanhar' ? (
         <TrackDeliveries
           organizationId={organizationId}
           requests={requests}
           filter={filter}
           now={now}
+          mode={isNursing ? 'enfermagem' : 'farmacia'}
+        />
+      ) : isNursing && screen === 'solicitar' ? (
+        <PrescriptionForm
+          organizationId={organizationId}
+          sectors={sectors}
+          preset={filter}
+          onCancel={() => setScreen('painel')}
+          onCreated={() => setScreen('acompanhar')}
         />
       ) : isNursing ? (
         <NursingDashboard

@@ -1,7 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { useMutation } from 'convex/react';
 import { toast } from 'sonner';
-import { Check, ClipboardPlus, PackageCheck, Truck, XCircle } from 'lucide-react';
+import { Check, ClipboardPlus, PackageCheck, Plus, Trash2, Truck, XCircle } from 'lucide-react';
 import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
 import {
@@ -9,6 +9,7 @@ import {
   PHARMACEUTICAL_FORMS,
   STATUS_LABEL,
   URGENCY_LABEL,
+  isFinishedStatus,
   type RequestStatus,
   type Urgency,
 } from '../../../../convex/lib/medicationOptions';
@@ -33,13 +34,17 @@ import {
   formatDateTime,
   formatElapsed,
   formatLocation,
+  groupPrescriptions,
   isTrackedByNursing,
   isUnseenRejection,
   matchesBedFilter,
+  medicationCountLabel,
   medicationSummary,
   requestTitle,
+  requesterLabel,
   type BedFilterValue,
   type MedicationRequest,
+  type Prescription,
   type SectorWithBeds,
 } from './shared';
 
@@ -81,7 +86,9 @@ export function NursingDashboard({
 }: {
   readonly onRequest: () => void;
   readonly onTrack: () => void;
+  /** Prescriptions still in progress. */
   readonly activeCount: number;
+  /** Medications rejected and not yet marked "Ciente". */
   readonly rejectedCount: number;
 }) {
   return (
@@ -104,8 +111,8 @@ export function NursingDashboard({
             {rejectedCount > 0 ? (
               <span className="mt-2 block font-semibold text-red-700 dark:text-red-300">
                 {rejectedCount === 1
-                  ? '1 solicitação rejeitada aguardando leitura'
-                  : `${rejectedCount} solicitações rejeitadas aguardando leitura`}
+                  ? '1 medicamento rejeitado aguardando leitura'
+                  : `${rejectedCount} medicamentos rejeitados aguardando leitura`}
               </span>
             ) : null}
           </>
@@ -117,15 +124,8 @@ export function NursingDashboard({
   );
 }
 
-const URGENCY_HINT: Record<Urgency, string> = {
-  urgente: 'Risco imediato ao paciente',
-  prioritario: 'Precisa ser atendido logo',
-  rotina: 'Pode seguir a ordem normal',
-};
-
-type FormState = {
-  sectorId: Id<'sectors'> | null;
-  bedId: Id<'beds'> | null;
+type ItemState = {
+  key: number;
   medication: string;
   concentration: string;
   pharmaceuticalForm: string;
@@ -133,10 +133,28 @@ type FormState = {
   route: string;
   quantity: string;
   urgency: Urgency | null;
-  /** Value of the datetime-local input ("2026-11-12T14:30"), or '' for "sem prazo". */
+  /** Value of the datetime-local input ("2026-11-20T14:30"), or '' for "sem prazo". */
   deadline: string;
   notes: string;
 };
+
+let nextItemKey = 1;
+
+function emptyItem(): ItemState {
+  nextItemKey += 1;
+  return {
+    key: nextItemKey,
+    medication: '',
+    concentration: '',
+    pharmaceuticalForm: '',
+    dose: '',
+    route: '',
+    quantity: '1',
+    urgency: null,
+    deadline: '',
+    notes: '',
+  };
+}
 
 function Field({
   id,
@@ -160,8 +178,187 @@ function Field({
   );
 }
 
-/** Full-page request form; starts with the sector/bed currently selected in the filter. */
-export function RequestForm({
+/** Missing fields of one medication, in the order they appear on screen. */
+function missingInItem(item: ItemState) {
+  const missing: string[] = [];
+  const quantity = Number(item.quantity);
+  if (!item.medication.trim()) missing.push('nome do medicamento');
+  if (!item.concentration.trim()) missing.push('concentração');
+  if (!item.pharmaceuticalForm) missing.push('forma farmacêutica');
+  if (!item.dose.trim()) missing.push('dose');
+  if (!item.route) missing.push('via de administração');
+  if (!Number.isInteger(quantity) || quantity < 1) missing.push('quantidade');
+  if (!item.urgency) missing.push('urgência');
+  if (item.deadline && Number.isNaN(new Date(item.deadline).getTime())) {
+    missing.push('data e horário válidos');
+  }
+  return missing;
+}
+
+function isDeadlineInPast(item: ItemState) {
+  if (!item.deadline) return false;
+  const value = new Date(item.deadline).getTime();
+  return !Number.isNaN(value) && value < Date.now();
+}
+
+function MedicationFields({
+  item,
+  idPrefix,
+  onChange,
+}: {
+  readonly item: ItemState;
+  readonly idPrefix: string;
+  readonly onChange: <K extends keyof ItemState>(key: K, value: ItemState[K]) => void;
+}) {
+  const pastDeadline = isDeadlineInPast(item);
+  return (
+    <div className="space-y-5">
+      <Field id={`${idPrefix}-medicamento`} label="Nome do medicamento">
+        <Input
+          id={`${idPrefix}-medicamento`}
+          className="h-11"
+          value={item.medication}
+          onChange={(event) => onChange('medication', event.target.value)}
+          autoComplete="off"
+        />
+      </Field>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field id={`${idPrefix}-concentracao`} label="Concentração">
+          <Input
+            id={`${idPrefix}-concentracao`}
+            className="h-11"
+            value={item.concentration}
+            onChange={(event) => onChange('concentration', event.target.value)}
+            autoComplete="off"
+          />
+        </Field>
+        <Field id={`${idPrefix}-forma`} label="Forma farmacêutica">
+          <Select
+            value={item.pharmaceuticalForm || undefined}
+            onValueChange={(value) => onChange('pharmaceuticalForm', value)}
+          >
+            <SelectTrigger id={`${idPrefix}-forma`} className="h-11">
+              <SelectValue placeholder="Escolha" />
+            </SelectTrigger>
+            <SelectContent>
+              {PHARMACEUTICAL_FORMS.map((form) => (
+                <SelectItem key={form} value={form}>
+                  {form}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Field id={`${idPrefix}-dose`} label="Dose">
+          <Input
+            id={`${idPrefix}-dose`}
+            className="h-11"
+            value={item.dose}
+            onChange={(event) => onChange('dose', event.target.value)}
+            autoComplete="off"
+          />
+        </Field>
+        <Field id={`${idPrefix}-via`} label="Via de administração">
+          <Select
+            value={item.route || undefined}
+            onValueChange={(value) => onChange('route', value)}
+          >
+            <SelectTrigger id={`${idPrefix}-via`} className="h-11">
+              <SelectValue placeholder="Escolha" />
+            </SelectTrigger>
+            <SelectContent>
+              {MEDICATION_ROUTES.map((route) => (
+                <SelectItem key={route} value={route}>
+                  {route}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field id={`${idPrefix}-quantidade`} label="Quantidade">
+          <Input
+            id={`${idPrefix}-quantidade`}
+            className="h-11"
+            type="number"
+            min={1}
+            max={999}
+            step={1}
+            value={item.quantity}
+            onChange={(event) => onChange('quantity', event.target.value)}
+          />
+        </Field>
+      </div>
+
+      <Field label="Urgência">
+        <RadioGroup
+          value={item.urgency ?? ''}
+          onValueChange={(value) => onChange('urgency', value as Urgency)}
+          className="grid gap-3 sm:grid-cols-3"
+        >
+          {(Object.keys(URGENCY_LABEL) as Urgency[]).map((urgency) => (
+            <Label
+              key={urgency}
+              htmlFor={`${idPrefix}-urgencia-${urgency}`}
+              className={cn(
+                'flex cursor-pointer items-center rounded-xl border-2 p-4 font-normal transition-colors',
+                item.urgency === urgency ? URGENCY_STYLE[urgency].ring : 'border-muted'
+              )}
+            >
+              <span className="flex items-center gap-2 text-base font-semibold">
+                <RadioGroupItem id={`${idPrefix}-urgencia-${urgency}`} value={urgency} />
+                <span className={cn('h-3 w-3 rounded-full', URGENCY_STYLE[urgency].dot)} />
+                {URGENCY_LABEL[urgency]}
+              </span>
+            </Label>
+          ))}
+        </RadioGroup>
+      </Field>
+
+      <Field id={`${idPrefix}-prazo`} label="Data e horário limite" optional>
+        <div className="flex flex-wrap gap-2">
+          <Input
+            id={`${idPrefix}-prazo`}
+            type="datetime-local"
+            className="h-11 sm:w-72"
+            value={item.deadline}
+            onChange={(event) => onChange('deadline', event.target.value)}
+          />
+          {item.deadline ? (
+            <Button type="button" variant="ghost" onClick={() => onChange('deadline', '')}>
+              Sem prazo
+            </Button>
+          ) : null}
+        </div>
+        {pastDeadline ? (
+          <p className="text-sm font-medium text-red-700 dark:text-red-300">
+            Esse horário já passou. Escolha um horário futuro ou deixe sem prazo.
+          </p>
+        ) : null}
+      </Field>
+
+      <Field id={`${idPrefix}-observacao`} label="Observação" optional>
+        <Textarea
+          id={`${idPrefix}-observacao`}
+          value={item.notes}
+          onChange={(event) => onChange('notes', event.target.value)}
+          placeholder="Recado para a farmácia"
+          rows={2}
+        />
+      </Field>
+    </div>
+  );
+}
+
+/**
+ * Full-page prescription form. It starts with one medication and "Adicionar medicamento" adds
+ * more, each with its own details, urgency and deadline; sector, bed and identification are
+ * shared by the whole prescription.
+ */
+export function PrescriptionForm({
   organizationId,
   sectors,
   preset,
@@ -174,65 +371,64 @@ export function RequestForm({
   readonly onCancel: () => void;
   readonly onCreated: () => void;
 }) {
-  const createRequest = useMutation(api.medications.createRequest);
+  const createPrescription = useMutation(api.medications.createPrescription);
   const [isSaving, setIsSaving] = useState(false);
-  const [form, setForm] = useState<FormState>(() => ({
-    sectorId: preset.sectorId,
-    bedId: preset.bedId,
-    medication: '',
-    concentration: '',
-    pharmaceuticalForm: '',
-    dose: '',
-    route: '',
-    quantity: '1',
-    urgency: null,
-    deadline: '',
-    notes: '',
-  }));
+  const [sectorId, setSectorId] = useState<Id<'sectors'> | null>(preset.sectorId);
+  const [bedId, setBedId] = useState<Id<'beds'> | null>(preset.bedId);
+  const [requester, setRequester] = useState({ name: '', coren: '' });
+  const [items, setItems] = useState<ItemState[]>(() => [emptyItem()]);
+  const multiple = items.length > 1;
 
-  const sector = sectors.find((item) => item._id === form.sectorId) ?? null;
-  const bed = sector?.beds.find((item) => item._id === form.bedId) ?? null;
-  const quantity = Number(form.quantity);
-  // datetime-local values are in the browser's local time zone.
-  const deadline = form.deadline ? new Date(form.deadline).getTime() : null;
-  const isDeadlineInPast = deadline !== null && deadline < Date.now();
+  const sector = sectors.find((item) => item._id === sectorId) ?? null;
+  const bed = sector?.beds.find((item) => item._id === bedId) ?? null;
+
+  const updateItem =
+    (key: number) =>
+    <K extends keyof ItemState>(field: K, value: ItemState[K]) =>
+      setItems((current) =>
+        current.map((item) => (item.key === key ? { ...item, [field]: value } : item))
+      );
 
   const missing: string[] = [];
   if (!bed) missing.push('setor e leito');
-  if (!form.medication.trim()) missing.push('nome do medicamento');
-  if (!form.concentration.trim()) missing.push('concentração');
-  if (!form.pharmaceuticalForm) missing.push('forma farmacêutica');
-  if (!form.dose.trim()) missing.push('dose');
-  if (!form.route) missing.push('via de administração');
-  if (!Number.isInteger(quantity) || quantity < 1) missing.push('quantidade');
-  if (!form.urgency) missing.push('urgência');
-  if (deadline !== null && Number.isNaN(deadline)) missing.push('data e horário válidos');
-
-  const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>
-    setForm((current) => ({ ...current, [key]: value }));
+  if (!requester.name.trim()) missing.push('nome completo');
+  if (!requester.coren.trim()) missing.push('COREN');
+  items.forEach((item, index) => {
+    const itemMissing = missingInItem(item);
+    if (itemMissing.length > 0) {
+      missing.push(
+        multiple ? `medicamento ${index + 1}: ${itemMissing.join(', ')}` : itemMissing.join(', ')
+      );
+    }
+  });
+  const hasPastDeadline = items.some(isDeadlineInPast);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (missing.length > 0 || isDeadlineInPast || !sector || !bed || !form.urgency) {
+    if (missing.length > 0 || hasPastDeadline || !sector || !bed) {
       return;
     }
     setIsSaving(true);
     try {
-      const created = await createRequest({
+      const created = await createPrescription({
         organizationId,
         bedId: bed._id,
-        medication: form.medication,
-        concentration: form.concentration,
-        pharmaceuticalForm: form.pharmaceuticalForm,
-        dose: form.dose,
-        route: form.route,
-        quantity,
-        urgency: form.urgency,
-        deadline: deadline ?? undefined,
-        notes: form.notes.trim() ? form.notes : undefined,
+        requesterName: requester.name,
+        requesterCoren: requester.coren,
+        items: items.map((item) => ({
+          medication: item.medication,
+          concentration: item.concentration,
+          pharmaceuticalForm: item.pharmaceuticalForm,
+          dose: item.dose,
+          route: item.route,
+          quantity: Number(item.quantity),
+          urgency: item.urgency ?? 'rotina',
+          deadline: item.deadline ? new Date(item.deadline).getTime() : undefined,
+          notes: item.notes.trim() ? item.notes : undefined,
+        })),
       });
       toast.success(
-        `Solicitação ${created.number} enviada para a farmácia (${formatLocation(sector.name, bed.label)})`
+        `Solicitação ${created.number} enviada para a farmácia: ${medicationCountLabel(created.itemCount)} (${formatLocation(sector.name, bed.label)})`
       );
       onCreated();
     } catch (error) {
@@ -247,17 +443,16 @@ export function RequestForm({
       className="mx-auto max-w-3xl space-y-6 rounded-2xl border bg-card p-6 shadow-sm"
       data-testid="request-form"
     >
-      <div>
-        <h2 className="font-serif text-2xl font-semibold">Solicitar medicamento</h2>
-      </div>
+      <h2 className="font-serif text-2xl font-semibold">Solicitar medicamento</h2>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id="form-setor" label="Setor">
           <Select
-            value={form.sectorId ?? undefined}
-            onValueChange={(value) =>
-              setForm((current) => ({ ...current, sectorId: value as Id<'sectors'>, bedId: null }))
-            }
+            value={sectorId ?? undefined}
+            onValueChange={(value) => {
+              setSectorId(value as Id<'sectors'>);
+              setBedId(null);
+            }}
           >
             <SelectTrigger id="form-setor" className="h-11">
               <SelectValue placeholder="Escolha o setor" />
@@ -273,9 +468,9 @@ export function RequestForm({
         </Field>
         <Field id="form-leito" label="Leito">
           <Select
-            value={form.bedId ?? undefined}
+            value={bedId ?? undefined}
             disabled={!sector}
-            onValueChange={(value) => update('bedId', value as Id<'beds'>)}
+            onValueChange={(value) => setBedId(value as Id<'beds'>)}
           >
             <SelectTrigger id="form-leito" className="h-11">
               <SelectValue placeholder={sector ? 'Escolha o leito' : 'Escolha o setor antes'} />
@@ -296,154 +491,87 @@ export function RequestForm({
         </p>
       ) : null}
 
-      <Field id="form-medicamento" label="Nome do medicamento">
-        <Input
-          id="form-medicamento"
-          className="h-11"
-          value={form.medication}
-          onChange={(event) => update('medication', event.target.value)}
-          placeholder="Ex.: Dipirona"
-          autoComplete="off"
-        />
-      </Field>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field id="form-concentracao" label="Concentração">
-          <Input
-            id="form-concentracao"
-            className="h-11"
-            value={form.concentration}
-            onChange={(event) => update('concentration', event.target.value)}
-            placeholder="Ex.: 500 mg/ml"
-            autoComplete="off"
-          />
-        </Field>
-        <Field id="form-forma" label="Forma farmacêutica">
-          <Select
-            value={form.pharmaceuticalForm || undefined}
-            onValueChange={(value) => update('pharmaceuticalForm', value)}
-          >
-            <SelectTrigger id="form-forma" className="h-11">
-              <SelectValue placeholder="Ex.: comprimido, injetável" />
-            </SelectTrigger>
-            <SelectContent>
-              {PHARMACEUTICAL_FORMS.map((item) => (
-                <SelectItem key={item} value={item}>
-                  {item}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Field id="form-dose" label="Dose">
-          <Input
-            id="form-dose"
-            className="h-11"
-            value={form.dose}
-            onChange={(event) => update('dose', event.target.value)}
-            placeholder="Ex.: 2 ml, 1 comprimido"
-            autoComplete="off"
-          />
-        </Field>
-        <Field id="form-via" label="Via de administração">
-          <Select value={form.route || undefined} onValueChange={(value) => update('route', value)}>
-            <SelectTrigger id="form-via" className="h-11">
-              <SelectValue placeholder="Escolha" />
-            </SelectTrigger>
-            <SelectContent>
-              {MEDICATION_ROUTES.map((route) => (
-                <SelectItem key={route} value={route}>
-                  {route}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field id="form-quantidade" label="Quantidade">
-          <Input
-            id="form-quantidade"
-            className="h-11"
-            type="number"
-            min={1}
-            max={999}
-            step={1}
-            value={form.quantity}
-            onChange={(event) => update('quantity', event.target.value)}
-          />
-        </Field>
-      </div>
-
-      <Field label="Urgência">
-        <RadioGroup
-          value={form.urgency ?? ''}
-          onValueChange={(value) => update('urgency', value as Urgency)}
-          className="grid gap-3 sm:grid-cols-3"
-        >
-          {(Object.keys(URGENCY_LABEL) as Urgency[]).map((urgency) => (
-            <Label
-              key={urgency}
-              htmlFor={`form-urgencia-${urgency}`}
-              className={cn(
-                'flex cursor-pointer flex-col gap-1 rounded-xl border-2 p-4 font-normal transition-colors',
-                form.urgency === urgency ? URGENCY_STYLE[urgency].ring : 'border-muted'
-              )}
-            >
-              <span className="flex items-center gap-2 text-base font-semibold">
-                <RadioGroupItem id={`form-urgencia-${urgency}`} value={urgency} />
-                <span className={cn('h-3 w-3 rounded-full', URGENCY_STYLE[urgency].dot)} />
-                {URGENCY_LABEL[urgency]}
-              </span>
-              <span className="text-sm text-muted-foreground">{URGENCY_HINT[urgency]}</span>
-            </Label>
-          ))}
-        </RadioGroup>
-      </Field>
-
-      <Field id="form-prazo" label="Data e horário limite" optional>
-        <div className="flex flex-wrap gap-2">
-          <Input
-            id="form-prazo"
-            type="datetime-local"
-            className="h-11 sm:w-72"
-            value={form.deadline}
-            onChange={(event) => update('deadline', event.target.value)}
-          />
-          {form.deadline ? (
-            <Button type="button" variant="ghost" onClick={() => update('deadline', '')}>
-              Sem prazo
-            </Button>
-          ) : null}
+      <fieldset className="space-y-3 rounded-xl border p-4">
+        <legend className="px-1 text-base font-semibold">Identificação do profissional</legend>
+        <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+          <Field id="form-solicitante" label="Nome completo">
+            <Input
+              id="form-solicitante"
+              className="h-11"
+              value={requester.name}
+              onChange={(event) =>
+                setRequester((current) => ({ ...current, name: event.target.value }))
+              }
+              autoComplete="name"
+              maxLength={80}
+            />
+          </Field>
+          <Field id="form-coren" label="COREN">
+            <Input
+              id="form-coren"
+              className="h-11"
+              value={requester.coren}
+              onChange={(event) =>
+                setRequester((current) => ({ ...current, coren: event.target.value }))
+              }
+              autoComplete="off"
+              maxLength={80}
+            />
+          </Field>
         </div>
-        <p
-          className={
-            isDeadlineInPast
-              ? 'text-sm font-medium text-red-700 dark:text-red-300'
-              : 'text-sm text-muted-foreground'
-          }
-        >
-          {isDeadlineInPast
-            ? 'Esse horário já passou. Escolha um horário futuro ou deixe sem prazo.'
-            : 'Dentro do mesmo nível de urgência, a farmácia atende primeiro o prazo mais próximo.'}
-        </p>
-      </Field>
+      </fieldset>
 
-      <Field id="form-observacao" label="Observação" optional>
-        <Textarea
-          id="form-observacao"
-          value={form.notes}
-          onChange={(event) => update('notes', event.target.value)}
-          placeholder="Recado para a farmácia"
-          rows={2}
-        />
-      </Field>
+      <div className="space-y-4">
+        {items.map((item, index) => (
+          <fieldset
+            key={item.key}
+            className="space-y-4 rounded-xl border-2 border-primary/20 p-4"
+            data-testid="prescription-item"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <legend className="text-lg font-semibold">
+                {multiple ? `Medicamento ${index + 1}` : 'Medicamento'}
+              </legend>
+              {items.length > 1 ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    setItems((current) => current.filter((other) => other.key !== item.key))
+                  }
+                  aria-label={`Remover o medicamento ${index + 1}`}
+                >
+                  <Trash2 className="mr-1 h-4 w-4" />
+                  Remover
+                </Button>
+              ) : null}
+            </div>
+            <MedicationFields
+              item={item}
+              idPrefix={`item-${item.key}`}
+              onChange={updateItem(item.key)}
+            />
+          </fieldset>
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="w-full border-2 border-dashed"
+          disabled={items.length >= 20}
+          onClick={() => setItems((current) => [...current, emptyItem()])}
+          data-testid="add-medication"
+        >
+          <Plus className="mr-2 h-5 w-5" />
+          Adicionar medicamento
+        </Button>
+      </div>
 
       <div className="flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-end">
         {missing.length > 0 ? (
           <p className="text-sm text-muted-foreground sm:mr-auto">
-            Falta preencher: {missing.join(', ')}
+            Falta preencher: {missing.join('; ')}
           </p>
         ) : null}
         <Button type="button" variant="outline" size="lg" onClick={onCancel}>
@@ -452,10 +580,14 @@ export function RequestForm({
         <Button
           type="submit"
           size="lg"
-          disabled={missing.length > 0 || isDeadlineInPast || isSaving}
+          disabled={missing.length > 0 || hasPastDeadline || isSaving}
           data-testid="submit-request"
         >
-          {isSaving ? 'Enviando...' : 'Enviar para a farmácia'}
+          {isSaving
+            ? 'Enviando...'
+            : multiple
+              ? `Enviar ${medicationCountLabel(items.length)} para a farmácia`
+              : 'Enviar para a farmácia'}
         </Button>
       </div>
     </form>
@@ -470,6 +602,9 @@ const PROGRESS_STEPS: ReadonlyArray<RequestStatus> = [
 ];
 
 function DeliveryProgress({ status }: { readonly status: RequestStatus }) {
+  if (status === 'recusado') {
+    return <StatusBadge status={status} />;
+  }
   const reached = PROGRESS_STEPS.indexOf(status);
   return (
     <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
@@ -492,149 +627,214 @@ function DeliveryProgress({ status }: { readonly status: RequestStatus }) {
   );
 }
 
+function PrescriptionStatusSummary({
+  items,
+}: {
+  readonly items: ReadonlyArray<MedicationRequest>;
+}) {
+  const counts = new Map<RequestStatus, number>();
+  for (const item of items) {
+    counts.set(item.status, (counts.get(item.status) ?? 0) + 1);
+  }
+  return (
+    <span className="text-sm text-muted-foreground">
+      {[...counts.entries()]
+        .map(([status, count]) => {
+          const label = STATUS_LABEL[status].toLowerCase();
+          const plural = count > 1 && status !== 'em_separacao' ? `${label}s` : label;
+          return `${count} ${plural}`;
+        })
+        .join(' · ')}
+    </span>
+  );
+}
+
+/** Runs a mutation and shows a success or error toast. */
+function run(action: Promise<unknown>, success: string) {
+  action
+    .then(() => toast.success(success))
+    .catch((error: unknown) => toast.error(errorMessage(error)));
+}
+
 /**
- * Nursing: requests still on their way ("Confirmar recebimento" once sent), plus rejected
- * requests shown first in red until someone clicks "Ciente".
+ * "Acompanhar entregas": prescriptions with the status of every medication, so everybody sees
+ * where each one is. Nursing confirms receipt and marks rejections as seen; the pharmacy view
+ * (`mode="farmacia"`) is read-only.
  */
 export function TrackDeliveries({
   organizationId,
   requests,
   filter,
   now,
+  mode,
 }: {
   readonly organizationId: string;
   readonly requests: ReadonlyArray<MedicationRequest>;
   readonly filter: BedFilterValue;
   readonly now: number;
+  readonly mode: 'enfermagem' | 'farmacia';
 }) {
   const confirmReceived = useMutation(api.medications.confirmReceived);
   const acknowledgeRefusal = useMutation(api.medications.acknowledgeRefusal);
-  const tracked = requests.filter(
-    (request) => isTrackedByNursing(request) && matchesBedFilter(request, filter)
-  );
-  const rejected = tracked.filter(isUnseenRejection);
-  const inProgress = tracked.filter((request) => !isUnseenRejection(request));
+  const isNursing = mode === 'enfermagem';
 
-  const handleConfirm = (request: MedicationRequest) => {
-    confirmReceived({ organizationId, requestId: request._id })
-      .then(() => toast.success(`${requestTitle(request)}: recebimento confirmado`))
-      .catch((error: unknown) => toast.error(errorMessage(error)));
-  };
-
-  const handleAcknowledge = (request: MedicationRequest) => {
-    acknowledgeRefusal({ organizationId, requestId: request._id })
-      .then(() => toast.success(`${requestTitle(request)} movida para o Histórico`))
-      .catch((error: unknown) => toast.error(errorMessage(error)));
-  };
+  // A prescription is shown while any of its medications still needs attention: in progress,
+  // or (for nursing) rejected and not yet seen.
+  const needsAttention = (request: MedicationRequest) =>
+    isNursing ? isTrackedByNursing(request) : !isFinishedStatus(request.status);
+  const visible = groupPrescriptions(
+    requests.filter((request) => matchesBedFilter(request, filter))
+  ).filter((prescription) => prescription.items.some(needsAttention));
+  // Prescriptions with an unseen rejection first, so nursing does not miss them.
+  const ordered = isNursing
+    ? [
+        ...visible.filter((prescription) => prescription.items.some(isUnseenRejection)),
+        ...visible.filter((prescription) => !prescription.items.some(isUnseenRejection)),
+      ]
+    : visible;
 
   return (
     <section className="space-y-4">
-      <div>
-        <h2 className="font-serif text-2xl font-semibold">Acompanhar entregas</h2>
-      </div>
-
-      {rejected.length > 0 ? (
-        <ul className="space-y-3" aria-label="Solicitações rejeitadas">
-          {rejected.map((request) => (
-            <li
-              key={request._id}
-              className="space-y-3 rounded-xl border-2 border-red-500 bg-red-50 p-4 dark:bg-red-950/40"
-              data-testid="rejected-request"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <XCircle className="h-5 w-5 text-red-600" />
-                  <span className="text-lg font-semibold">{requestTitle(request)}</span>
-                  <span className="font-semibold text-red-700 dark:text-red-300">
-                    Rejeitada pela farmácia
-                  </span>
-                  <UrgencyBadge urgency={request.urgency} />
-                </div>
-                <span className="text-sm text-muted-foreground">
-                  Pedido {formatElapsed(request.createdAt, now)}
-                </span>
-              </div>
-              <div>
-                <p className="font-medium">
-                  {formatLocation(request.sectorName, request.bedLabel)}
-                </p>
-                <p className="text-muted-foreground">
-                  {medicationSummary(request)} · {request.quantity}{' '}
-                  {request.quantity === 1 ? 'unidade' : 'unidades'}
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="font-semibold text-red-800 dark:text-red-200">
-                  Justificativa: {request.refusalReason ?? 'não informada'}
-                </p>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-2 border-red-400"
-                  onClick={() => handleAcknowledge(request)}
-                  data-testid="acknowledge-refusal"
-                >
-                  <Check className="mr-2 h-5 w-5" />
-                  Ciente
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-
-      {inProgress.length === 0 ? (
+      <h2 className="font-serif text-2xl font-semibold">Acompanhar entregas</h2>
+      {ordered.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
           Nenhuma solicitação em andamento neste filtro.
         </div>
       ) : (
-        <ul className="space-y-3">
-          {inProgress.map((request) => (
-            <li
-              key={request._id}
-              className={cn(
-                'space-y-3 rounded-xl border-2 bg-card p-4',
-                request.status === 'enviado' ? 'border-primary' : 'border-border'
-              )}
-              data-testid="tracked-request"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-lg font-semibold">{requestTitle(request)}</span>
-                  <UrgencyBadge urgency={request.urgency} />
-                  <StatusBadge status={request.status} />
-                </div>
-                <span className="text-sm text-muted-foreground">
-                  Pedido {formatElapsed(request.createdAt, now)}
-                  {request.deadline ? ` · prazo ${formatDateTime(request.deadline, now)}` : ''}
-                </span>
-              </div>
-              <div>
-                <p className="font-medium">
-                  {formatLocation(request.sectorName, request.bedLabel)}
-                </p>
-                <p className="text-muted-foreground">
-                  {medicationSummary(request)} · {request.quantity}{' '}
-                  {request.quantity === 1 ? 'unidade' : 'unidades'}
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <DeliveryProgress status={request.status} />
-                {request.status === 'enviado' ? (
-                  <Button
-                    size="lg"
-                    onClick={() => handleConfirm(request)}
-                    data-testid="confirm-received"
-                  >
-                    <PackageCheck className="mr-2 h-5 w-5" />
-                    Confirmar recebimento
-                  </Button>
-                ) : null}
-              </div>
-            </li>
+        <ul className="space-y-4">
+          {ordered.map((prescription) => (
+            <PrescriptionCard
+              key={prescription.key}
+              prescription={prescription}
+              now={now}
+              renderActions={(item) => {
+                if (!isNursing) return null;
+                if (item.status === 'enviado') {
+                  return (
+                    <Button
+                      onClick={() =>
+                        run(
+                          confirmReceived({ organizationId, requestId: item._id }),
+                          `${item.medication}: recebimento confirmado`
+                        )
+                      }
+                      data-testid="confirm-received"
+                    >
+                      <PackageCheck className="mr-2 h-4 w-4" />
+                      Confirmar recebimento
+                    </Button>
+                  );
+                }
+                if (isUnseenRejection(item)) {
+                  return (
+                    <Button
+                      variant="outline"
+                      className="border-2 border-red-400"
+                      onClick={() =>
+                        run(
+                          acknowledgeRefusal({ organizationId, requestId: item._id }),
+                          `${item.medication}: rejeição lida, movida para o Histórico`
+                        )
+                      }
+                      data-testid="acknowledge-refusal"
+                    >
+                      <Check className="mr-2 h-4 w-4" />
+                      Ciente
+                    </Button>
+                  );
+                }
+                return null;
+              }}
+            />
           ))}
         </ul>
       )}
     </section>
+  );
+}
+
+/** One prescription with each medication's status, shared by nursing and pharmacy tracking. */
+export function PrescriptionCard({
+  prescription,
+  now,
+  renderActions,
+}: {
+  readonly prescription: Prescription;
+  readonly now: number;
+  readonly renderActions: (item: MedicationRequest) => ReactNode;
+}) {
+  const hasRejection = prescription.items.some(isUnseenRejection);
+  const requester = requesterLabel(prescription);
+  return (
+    <li
+      className={cn(
+        'space-y-3 rounded-xl border-2 bg-card p-4',
+        hasRejection ? 'border-red-500' : 'border-border'
+      )}
+      data-testid="tracked-request"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="flex flex-wrap items-center gap-2">
+            <span className="text-lg font-semibold">{requestTitle(prescription)}</span>
+            {prescription.items.length > 1 ? (
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
+                {medicationCountLabel(prescription.items.length)}
+              </span>
+            ) : null}
+          </p>
+          <p className="font-medium">
+            {formatLocation(prescription.sectorName, prescription.bedLabel)}
+          </p>
+          {requester ? (
+            <p className="text-sm text-muted-foreground">Solicitado por {requester}</p>
+          ) : null}
+        </div>
+        <div className="text-right">
+          <p className="text-sm text-muted-foreground">
+            Pedido {formatElapsed(prescription.createdAt, now)}
+          </p>
+          {prescription.items.length > 1 ? (
+            <PrescriptionStatusSummary items={prescription.items} />
+          ) : null}
+        </div>
+      </div>
+
+      <ul className="divide-y rounded-lg border">
+        {prescription.items.map((item) => {
+          const rejected = item.status === 'recusado';
+          return (
+            <li
+              key={item._id}
+              className={cn('space-y-2 p-3', rejected && 'bg-red-50 dark:bg-red-950/40')}
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                {rejected ? <XCircle className="h-4 w-4 text-red-600" aria-hidden="true" /> : null}
+                <span className="font-semibold">{item.medication}</span>
+                <UrgencyBadge urgency={item.urgency} />
+                {item.deadline ? (
+                  <span className="text-sm text-muted-foreground">
+                    prazo {formatDateTime(item.deadline, now)}
+                  </span>
+                ) : null}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {medicationSummary(item)} · {item.quantity}{' '}
+                {item.quantity === 1 ? 'unidade' : 'unidades'}
+              </p>
+              {rejected ? (
+                <p className="font-semibold text-red-800 dark:text-red-200">
+                  Rejeitado pela farmácia · Justificativa: {item.refusalReason ?? 'não informada'}
+                </p>
+              ) : null}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <DeliveryProgress status={item.status} />
+                {renderActions(item)}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </li>
   );
 }

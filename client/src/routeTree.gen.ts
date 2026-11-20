@@ -16,6 +16,7 @@ import { Route as DevInboxRouteImport } from './routes/dev/inbox'
 import { Route as AcceptInvitationIdRouteImport } from './routes/accept-invitation.$id'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedSettingsTeamsRouteImport } from './routes/_authenticated/settings/teams'
+import { Route as AuthenticatedSettingsSetoresRouteImport } from './routes/_authenticated/settings/setores'
 import { Route as AuthenticatedSettingsOrgRouteImport } from './routes/_authenticated/settings/org'
 import { Route as AuthenticatedSettingsMembersRouteImport } from './routes/_authenticated/settings/members'
 import { Route as AuthenticatedDevTenantsRouteImport } from './routes/_authenticated/dev/tenants'
@@ -56,6 +57,12 @@ const AuthenticatedSettingsTeamsRoute =
   AuthenticatedSettingsTeamsRouteImport.update({
     id: '/settings/teams',
     path: '/settings/teams',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedSettingsSetoresRoute =
+  AuthenticatedSettingsSetoresRouteImport.update({
+    id: '/settings/setores',
+    path: '/settings/setores',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedSettingsOrgRoute =
@@ -105,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/dev/tenants': typeof AuthenticatedDevTenantsRoute
   '/settings/members': typeof AuthenticatedSettingsMembersRoute
   '/settings/org': typeof AuthenticatedSettingsOrgRoute
+  '/settings/setores': typeof AuthenticatedSettingsSetoresRoute
   '/settings/teams': typeof AuthenticatedSettingsTeamsRoute
 }
 export interface FileRoutesByTo {
@@ -119,6 +127,7 @@ export interface FileRoutesByTo {
   '/dev/tenants': typeof AuthenticatedDevTenantsRoute
   '/settings/members': typeof AuthenticatedSettingsMembersRoute
   '/settings/org': typeof AuthenticatedSettingsOrgRoute
+  '/settings/setores': typeof AuthenticatedSettingsSetoresRoute
   '/settings/teams': typeof AuthenticatedSettingsTeamsRoute
 }
 export interface FileRoutesById {
@@ -135,6 +144,7 @@ export interface FileRoutesById {
   '/_authenticated/dev/tenants': typeof AuthenticatedDevTenantsRoute
   '/_authenticated/settings/members': typeof AuthenticatedSettingsMembersRoute
   '/_authenticated/settings/org': typeof AuthenticatedSettingsOrgRoute
+  '/_authenticated/settings/setores': typeof AuthenticatedSettingsSetoresRoute
   '/_authenticated/settings/teams': typeof AuthenticatedSettingsTeamsRoute
 }
 export interface FileRouteTypes {
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/dev/tenants'
     | '/settings/members'
     | '/settings/org'
+    | '/settings/setores'
     | '/settings/teams'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/dev/tenants'
     | '/settings/members'
     | '/settings/org'
+    | '/settings/setores'
     | '/settings/teams'
   id:
     | '__root__'
@@ -180,6 +192,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dev/tenants'
     | '/_authenticated/settings/members'
     | '/_authenticated/settings/org'
+    | '/_authenticated/settings/setores'
     | '/_authenticated/settings/teams'
   fileRoutesById: FileRoutesById
 }
@@ -241,6 +254,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsTeamsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/settings/setores': {
+      id: '/_authenticated/settings/setores'
+      path: '/settings/setores'
+      fullPath: '/settings/setores'
+      preLoaderRoute: typeof AuthenticatedSettingsSetoresRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/settings/org': {
       id: '/_authenticated/settings/org'
       path: '/settings/org'
@@ -295,6 +315,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDevTenantsRoute: typeof AuthenticatedDevTenantsRoute
   AuthenticatedSettingsMembersRoute: typeof AuthenticatedSettingsMembersRoute
   AuthenticatedSettingsOrgRoute: typeof AuthenticatedSettingsOrgRoute
+  AuthenticatedSettingsSetoresRoute: typeof AuthenticatedSettingsSetoresRoute
   AuthenticatedSettingsTeamsRoute: typeof AuthenticatedSettingsTeamsRoute
 }
 
@@ -307,6 +328,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDevTenantsRoute: AuthenticatedDevTenantsRoute,
   AuthenticatedSettingsMembersRoute: AuthenticatedSettingsMembersRoute,
   AuthenticatedSettingsOrgRoute: AuthenticatedSettingsOrgRoute,
+  AuthenticatedSettingsSetoresRoute: AuthenticatedSettingsSetoresRoute,
   AuthenticatedSettingsTeamsRoute: AuthenticatedSettingsTeamsRoute,
 }
 

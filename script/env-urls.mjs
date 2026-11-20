@@ -378,7 +378,75 @@ export function prepareContainerProcessEnv(env = process.env) {
   }
 }
 
+const IS_WINDOWS = process.platform === 'win32';
+
+/** Windows has no lsof: read `netstat -ano` and keep LISTENING sockets on the port. */
+function listListeningPidsWindows(port) {
+  try {
+    const output = execSync('netstat -ano -p TCP', {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    const output6 = (() => {
+      try {
+        return execSync('netstat -ano -p TCPv6', {
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'ignore'],
+        });
+      } catch {
+        return '';
+      }
+    })();
+    const pids = new Set();
+    for (const line of `${output}\n${output6}`.split(/\r?\n/)) {
+      const columns = line.trim().split(/\s+/);
+      // Proto  Local Address  Foreign Address  State  PID
+      if (columns.length < 5 || columns[3] !== 'LISTENING') {
+        continue;
+      }
+      if (!columns[1].endsWith(`:${port}`)) {
+        continue;
+      }
+      const pid = Number(columns[4]);
+      // 0 and 4 are Windows system processes; never touch them.
+      if (Number.isInteger(pid) && pid > 4) {
+        pids.add(String(pid));
+      }
+    }
+    return [...pids];
+  } catch {
+    return [];
+  }
+}
+
+function processName(pid) {
+  try {
+    if (IS_WINDOWS) {
+      const row = execSync(`tasklist /FI "PID eq ${pid}" /FO CSV /NH`, {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).trim();
+      return row.startsWith('"') ? row.split('","')[0].replace(/^"/, '') : 'unknown';
+    }
+    return execSync(`ps -p ${pid} -o comm=`, { encoding: 'utf8' }).trim() || 'unknown';
+  } catch {
+    return 'unknown';
+  }
+}
+
+/** Windows: process.kill only ends one process; taskkill /T ends the whole tree. */
+function stopProcess(pid, force) {
+  if (IS_WINDOWS) {
+    execSync(`taskkill /PID ${pid} /T${force ? ' /F' : ''}`, { stdio: 'ignore' });
+    return;
+  }
+  process.kill(Number(pid), force ? 'SIGKILL' : 'SIGTERM');
+}
+
 function listListeningPids(port) {
+  if (IS_WINDOWS) {
+    return listListeningPidsWindows(port);
+  }
   try {
     const output = execSync(`lsof -nP -iTCP:${port} -sTCP:LISTEN -t`, {
       encoding: 'utf8',
@@ -403,9 +471,10 @@ export async function cleanupStaleDevPorts(env = process.env) {
   for (const port of ports) {
     for (const pid of listListeningPids(port)) {
       try {
-        const cmd = execSync(`ps -p ${pid} -o comm=`, { encoding: 'utf8' }).trim() || 'unknown';
+        const cmd = processName(pid);
         console.error(`[dev-all] Stopping stale process on port ${port}: ${cmd} (pid ${pid})`);
-        process.kill(Number(pid), 'SIGTERM');
+        // Windows console programs ignore a polite stop, so go straight to a forced tree kill.
+        stopProcess(pid, IS_WINDOWS);
         killed += 1;
       } catch {
         // process already gone
@@ -420,7 +489,7 @@ export async function cleanupStaleDevPorts(env = process.env) {
     for (const pid of listListeningPids(port)) {
       try {
         console.error(`[dev-all] Force-stopping process still on port ${port} (pid ${pid})`);
-        process.kill(Number(pid), 'SIGKILL');
+        stopProcess(pid, true);
       } catch {
         // ignore
       }

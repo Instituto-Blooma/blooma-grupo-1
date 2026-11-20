@@ -27,6 +27,11 @@ export type SectorWithBeds = {
 export type MedicationRequest = {
   _id: Id<'medicationRequests'>;
   number: number | null;
+  /** Position inside the prescription (1..itemCount); single-medication requests are 1 of 1. */
+  itemIndex: number;
+  itemCount: number;
+  requesterName: string | null;
+  requesterCoren: string | null;
   sectorId: Id<'sectors'>;
   bedId: Id<'beds'>;
   sectorName: string;
@@ -118,6 +123,78 @@ export function requestTitle(request: Pick<MedicationRequest, 'number'>) {
   return request.number ? `Solicitação ${request.number}` : 'Solicitação sem número';
 }
 
+/** "Solicitação 12" or, inside a multi-medication prescription, "Solicitação 12 · item 2 de 3". */
+export function itemTitle(request: Pick<MedicationRequest, 'number' | 'itemIndex' | 'itemCount'>) {
+  const title = requestTitle(request);
+  return request.itemCount > 1
+    ? `${title} · item ${request.itemIndex} de ${request.itemCount}`
+    : title;
+}
+
+export function medicationCountLabel(count: number) {
+  return count === 1 ? '1 medicamento' : `${count} medicamentos`;
+}
+
+/** "Ana Paula Ribeiro · COREN-SP 245.871", or null for requests made before identification. */
+export function requesterLabel(
+  request: Pick<MedicationRequest, 'requesterName' | 'requesterCoren'>
+) {
+  if (!request.requesterName) {
+    return null;
+  }
+  return request.requesterCoren
+    ? `${request.requesterName} · ${request.requesterCoren}`
+    : request.requesterName;
+}
+
+/** One prescription ("Solicitação N") and its medications, in the order they were listed. */
+export type Prescription = {
+  key: string;
+  number: number | null;
+  sectorId: Id<'sectors'>;
+  bedId: Id<'beds'>;
+  sectorName: string;
+  bedLabel: string;
+  requesterName: string | null;
+  requesterCoren: string | null;
+  createdAt: number;
+  items: MedicationRequest[];
+};
+
+/**
+ * Groups items into prescriptions. Prescriptions keep the order in which their first item
+ * appears in `requests` (callers pass the queue order, so a prescription sits at the position of
+ * its most urgent item); items inside a prescription are sorted by their position.
+ */
+export function groupPrescriptions(requests: ReadonlyArray<MedicationRequest>) {
+  const groups = new Map<string, Prescription>();
+  for (const request of requests) {
+    const key = request.number === null ? `id-${request._id}` : `n-${request.number}`;
+    const existing = groups.get(key);
+    if (existing) {
+      existing.items.push(request);
+      continue;
+    }
+    groups.set(key, {
+      key,
+      number: request.number,
+      sectorId: request.sectorId,
+      bedId: request.bedId,
+      sectorName: request.sectorName,
+      bedLabel: request.bedLabel,
+      requesterName: request.requesterName,
+      requesterCoren: request.requesterCoren,
+      createdAt: request.createdAt,
+      items: [request],
+    });
+  }
+  const result = [...groups.values()];
+  for (const prescription of result) {
+    prescription.items.sort((left, right) => left.itemIndex - right.itemIndex);
+  }
+  return result;
+}
+
 /** Every field the nursing team filled in, as label/value rows (the "ficha"). */
 export function requestFields(request: MedicationRequest, now: number) {
   return [
@@ -136,6 +213,7 @@ export function requestFields(request: MedicationRequest, now: number) {
       value: request.deadline ? formatDateTime(request.deadline, now) : 'Sem prazo',
     },
     { label: 'Observação', value: request.notes ?? '—' },
+    { label: 'Solicitado por', value: requesterLabel(request) ?? 'Não informado' },
   ];
 }
 

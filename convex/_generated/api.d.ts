@@ -16,6 +16,7 @@ import type * as devForm from "../devForm.js";
 import type * as devFormSchemas from "../devFormSchemas.js";
 import type * as emails from "../emails.js";
 import type * as files from "../files.js";
+import type * as hospitalStructure from "../hospitalStructure.js";
 import type * as http from "../http.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_collabAccess from "../lib/collabAccess.js";
@@ -55,6 +56,7 @@ declare const fullApi: ApiFromModules<{
   devFormSchemas: typeof devFormSchemas;
   emails: typeof emails;
   files: typeof files;
+  hospitalStructure: typeof hospitalStructure;
   http: typeof http;
   "lib/auth": typeof lib_auth;
   "lib/collabAccess": typeof lib_collabAccess;
