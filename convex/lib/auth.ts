@@ -4,6 +4,7 @@ import type { Id } from '../_generated/dataModel';
 import { internal } from '../_generated/api';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import { authz } from '../authz';
+import { resolveAuthProviderFlags } from './authProviders';
 import { assertOAuthAllowed } from './onboarding';
 import { normalizeEmail, resolveCanonicalUserByEmail } from './users';
 
@@ -22,8 +23,22 @@ export const DEFAULT_PLATFORM_ADMIN_EMAILS = [
   GOOGLE_EMULATE_DEFAULT_EMAIL,
 ] as const;
 
+/**
+ * Platform admins come from `PLATFORM_ADMIN_EMAILS`. The local-dev defaults only apply when the
+ * variable is unset AND password sign-in is off: on the public demo (password sign-in) a missing
+ * variable means "no platform admins", never the well-known dev e-mails.
+ */
+export function resolvePlatformAdminAllowlist(
+  env: Record<string, string | undefined> = process.env
+): string {
+  if (env.PLATFORM_ADMIN_EMAILS !== undefined) {
+    return env.PLATFORM_ADMIN_EMAILS;
+  }
+  return resolveAuthProviderFlags(env).password ? '' : DEFAULT_PLATFORM_ADMIN_EMAILS.join(',');
+}
+
 function parseAllowlist(): Set<string> {
-  const raw = process.env.PLATFORM_ADMIN_EMAILS ?? DEFAULT_PLATFORM_ADMIN_EMAILS.join(',');
+  const raw = resolvePlatformAdminAllowlist();
   return new Set(
     raw
       .split(',')

@@ -73,6 +73,8 @@ const DEMO_DETAILS: Record<string, { form: string; dose: string }> = {
   Midazolam: { form: 'Injetável', dose: '3 ml' },
   Pantoprazol: { form: 'Pó para reconstituição', dose: '1 frasco-ampola' },
   'Insulina regular': { form: 'Injetável', dose: '10 UI' },
+  Morfina: { form: 'Injetável', dose: '2 mg' },
+  Fenitoína: { form: 'Injetável', dose: '100 mg' },
 };
 
 /** Stands for a second pharmacy device, so the demo shows a request locked as "em andamento". */
@@ -237,6 +239,32 @@ export const DEMO_HOSPITALS: ReadonlyArray<DemoHospital> = [
         status: 'recusado',
         minutesAgo: 75,
         refusalReason: 'Dose fora do padrão',
+      },
+      // Controlled medication (Lista A1) rejected because of the prescription: nursing sees it
+      // in "Acompanhar entregas" until "Ciente".
+      {
+        sector: 'Pronto-Socorro',
+        bed: 'Leito 02',
+        medication: 'Morfina',
+        quantity: 1,
+        dose: '10 mg/ml',
+        route: 'Intravenosa',
+        urgency: 'urgente',
+        status: 'recusado',
+        minutesAgo: 28,
+        refusalReason: 'Receita inadequada',
+      },
+      // Controlled medication (Lista C1) already delivered: the Histórico shows its prescription.
+      {
+        sector: 'UTI Adulto',
+        bed: 'Leito 03',
+        medication: 'Fenitoína',
+        quantity: 2,
+        dose: '50 mg/ml',
+        route: 'Intravenosa',
+        urgency: 'prioritario',
+        status: 'recebido',
+        minutesAgo: 150,
       },
     ],
   },
@@ -443,13 +471,30 @@ async function seedHospitalStructure(
  * `npx convex run demo:seedHospitals "{}"` adds the demo hospitals if missing.
  * `npx convex run demo:seedHospitals "{\"reset\":true}"` wipes their sectors, beds and requests
  * first, to start a pitch rehearsal from the original demo data.
+ * Add `"hospitals":["hospital-esperanca"]` to seed or reset only those hospitals; the others are
+ * not touched. Running it again without `reset` changes nothing (idempotent).
  */
 export const seedHospitals = internalMutation({
-  args: { reset: v.optional(v.boolean()) },
+  args: {
+    reset: v.optional(v.boolean()),
+    // Slugs (e.g. ["hospital-blooma"]) to seed or reset only those hospitals; omit for all.
+    hospitals: v.optional(v.array(v.string())),
+  },
   returns: v.array(
     v.object({ hospital: v.string(), accountEmail: v.string(), seededData: v.boolean() })
   ),
-  handler: async (ctx, { reset }) => {
+  handler: async (ctx, { reset, hospitals }) => {
+    const unknown = (hospitals ?? []).filter(
+      (slug) => !DEMO_HOSPITALS.some((hospital) => hospital.slug === slug)
+    );
+    if (unknown.length > 0) {
+      throw new Error(
+        `Hospital de demonstração desconhecido: ${unknown.join(', ')}. Use: ${DEMO_HOSPITALS.map((hospital) => hospital.slug).join(', ')}`
+      );
+    }
+    const selected = hospitals
+      ? DEMO_HOSPITALS.filter((hospital) => hospitals.includes(hospital.slug))
+      : DEMO_HOSPITALS;
     const { user: platformUser } = await ensureUserByEmail(
       ctx,
       PLATFORM_ADMIN_EMAIL,
@@ -457,7 +502,7 @@ export const seedHospitals = internalMutation({
     );
 
     const result = [];
-    for (const hospital of DEMO_HOSPITALS) {
+    for (const hospital of selected) {
       const { user: account } = await ensureUserByEmail(ctx, hospital.accountEmail, hospital.name);
       const organizationId = await ensureOrganization(
         ctx,

@@ -1,7 +1,11 @@
-import { useState } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { useAuthActions } from '@convex-dev/auth/react';
+import { ConvexError } from 'convex/values';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { isPasswordLogin } from '@/lib/auth-mode';
 import { MedBridgeWordmark } from '@/components/medbridge-brand';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
@@ -29,7 +33,112 @@ function GoogleMark() {
   );
 }
 
+/** Message for a failed e-mail + password sign-in, without revealing which part was wrong. */
+function passwordSignInError(error: unknown) {
+  if (error instanceof ConvexError && typeof error.data === 'string') {
+    return error.data;
+  }
+  return 'E-mail ou senha incorretos. Confira e tente de novo.';
+}
+
+/** Public demo: one e-mail + password per hospital (accounts are created by the team). */
+function PasswordSignInForm() {
+  const { signIn } = useAuthActions();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    setIsLoading(true);
+    try {
+      await signIn('password', { email: email.trim(), password, flow: 'signIn' });
+    } catch (error) {
+      toast.error(passwordSignInError(error));
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4" data-testid="password-signin-form">
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="login-email" className="text-base">
+          E-mail do hospital
+        </Label>
+        <Input
+          id="login-email"
+          type="email"
+          className="h-11"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          autoComplete="username"
+          required
+        />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="login-senha" className="text-base">
+          Senha
+        </Label>
+        <Input
+          id="login-senha"
+          type="password"
+          className="h-11"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          autoComplete="current-password"
+          required
+        />
+      </div>
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={isLoading || !email.trim() || !password}
+        data-testid="button-password-signin"
+      >
+        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+        Entrar
+      </Button>
+    </form>
+  );
+}
+
 export function AuthForm() {
+  if (isPasswordLogin()) {
+    return (
+      <AuthCard description="Entre com o e-mail e a senha do seu hospital.">
+        <PasswordSignInForm />
+      </AuthCard>
+    );
+  }
+  return (
+    <AuthCard description="Entre com a conta Google do seu hospital.">
+      <GoogleSignInButton />
+    </AuthCard>
+  );
+}
+
+function AuthCard({
+  description,
+  children,
+}: {
+  readonly description: string;
+  readonly children: ReactNode;
+}) {
+  return (
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader className="space-y-4">
+        <MedBridgeWordmark className="justify-center" />
+        <div className="space-y-1 text-center">
+          <CardTitle className="font-serif text-2xl font-semibold tracking-tight">Entrar</CardTitle>
+          <CardDescription>{description}</CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">{children}</CardContent>
+    </Card>
+  );
+}
+
+function GoogleSignInButton() {
   const { signIn } = useAuthActions();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -44,26 +153,15 @@ export function AuthForm() {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="space-y-4">
-        <MedBridgeWordmark className="justify-center" />
-        <div className="space-y-1 text-center">
-          <CardTitle className="font-serif text-2xl font-semibold tracking-tight">Entrar</CardTitle>
-          <CardDescription>Entre com a conta Google do seu hospital.</CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Button
-          type="button"
-          className="w-full"
-          onClick={handleGoogleSignIn}
-          disabled={isLoading}
-          data-testid="button-google-signin"
-        >
-          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleMark />}
-          Entrar com o Google
-        </Button>
-      </CardContent>
-    </Card>
+    <Button
+      type="button"
+      className="w-full"
+      onClick={handleGoogleSignIn}
+      disabled={isLoading}
+      data-testid="button-google-signin"
+    >
+      {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleMark />}
+      Entrar com o Google
+    </Button>
   );
 }
