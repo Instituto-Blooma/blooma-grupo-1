@@ -16,6 +16,7 @@ import {
   canIncreaseFont,
   useAccessibilityPreferences,
 } from '@/lib/accessibility';
+import { Hint } from '@/components/hint';
 import { isSpeechSupported, speechActions, useSpeechStatus } from '@/lib/speech';
 import { cn } from '@/lib/utils';
 
@@ -96,23 +97,25 @@ export function AccessibilityBar() {
       className="border-b bg-muted/60 text-foreground"
     >
       <div className="container flex justify-end px-4 py-1.5 md:px-6">
-        <button
-          type="button"
-          onClick={() => setIsOpen((open) => !open)}
-          aria-expanded={isOpen}
-          aria-controls={panelId}
-          data-testid="a11y-toggle"
-          className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1 text-sm font-semibold transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
-        >
-          Acessibilidade
-          {speechNote ? (
-            <span className="font-normal text-muted-foreground">({speechNote})</span>
-          ) : null}
-          <ChevronDown
-            className={cn('h-4 w-4 transition-transform', isOpen && 'rotate-180')}
-            aria-hidden="true"
-          />
-        </button>
+        <Hint label="Leitura em voz alta, tamanho da fonte e alto contraste.">
+          <button
+            type="button"
+            onClick={() => setIsOpen((open) => !open)}
+            aria-expanded={isOpen}
+            aria-controls={panelId}
+            data-testid="a11y-toggle"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1 text-sm font-semibold transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+          >
+            Acessibilidade
+            {speechNote ? (
+              <span className="font-normal text-muted-foreground">({speechNote})</span>
+            ) : null}
+            <ChevronDown
+              className={cn('h-4 w-4 transition-transform', isOpen && 'rotate-180')}
+              aria-hidden="true"
+            />
+          </button>
+        </Hint>
       </div>
 
       <nav

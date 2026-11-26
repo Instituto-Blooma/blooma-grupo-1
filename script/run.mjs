@@ -104,6 +104,20 @@ function mergeEmulateUsers(dbUsers) {
 /** @type {import('node:child_process').ChildProcess[]} */
 let trackedChildren = [];
 
+/**
+ * Stops a child and everything it started. On Windows children run through a shell, and
+ * `kill()` would stop only that shell, leaving the real process (e.g. the Google emulator)
+ * running and holding its port.
+ * @param {import('node:child_process').ChildProcess} child
+ */
+function killProcessTree(child) {
+  if (process.platform === 'win32' && child.pid) {
+    spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
+    return;
+  }
+  child.kill('SIGTERM');
+}
+
 function cleanupChildren() {
   for (const child of trackedChildren) {
     try {
@@ -515,7 +529,7 @@ async function runEmulate() {
       shuttingDown = false;
       startEmulator();
     });
-    oldChild.kill('SIGTERM');
+    killProcessTree(oldChild);
   }
 
   function pollConvexUsers() {
@@ -542,7 +556,7 @@ async function runEmulate() {
       clearInterval(pollTimer);
     }
     if (child) {
-      child.kill('SIGTERM');
+      killProcessTree(child);
     } else {
       process.exit(0);
     }

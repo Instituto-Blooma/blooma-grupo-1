@@ -1,4 +1,5 @@
 import { Moon, Sun, Monitor } from 'lucide-react';
+import { Hint } from '@/components/hint';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -13,13 +14,15 @@ export function ThemeToggle() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" data-testid="button-theme-toggle">
-          <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Alternar tema</span>
-        </Button>
-      </DropdownMenuTrigger>
+      <Hint label="Mudar entre tema claro, escuro ou o do sistema.">
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" data-testid="button-theme-toggle">
+            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Alternar tema</span>
+          </Button>
+        </DropdownMenuTrigger>
+      </Hint>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme('light')} data-testid="menu-theme-light">
           <Sun className="mr-2 h-4 w-4" />

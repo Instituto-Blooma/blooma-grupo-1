@@ -1,10 +1,20 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { useMutation } from 'convex/react';
 import { toast } from 'sonner';
-import { Check, ClipboardPlus, PackageCheck, Plus, Trash2, Truck, XCircle } from 'lucide-react';
+import {
+  AlertTriangle,
+  Check,
+  ClipboardPlus,
+  PackageCheck,
+  Plus,
+  Trash2,
+  Truck,
+  XCircle,
+} from 'lucide-react';
 import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
 import {
+  DELIVERY_ERROR_REASONS,
   MEDICATION_ROUTES,
   PHARMACEUTICAL_FORMS,
   STATUS_LABEL,
@@ -26,9 +36,14 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { findControlledSubstance } from '../../../../convex/lib/controlledSubstances';
+import { MedicationNameInput } from './medication-name-input';
 import {
+  DeliveryErrorNotice,
+  RefrigeratedBadge,
   StatusBadge,
   URGENCY_STYLE,
+  acceptedByLabel,
   UrgencyBadge,
   errorMessage,
   formatDateTime,
@@ -127,6 +142,10 @@ export function NursingDashboard({
 type ItemState = {
   key: number;
   medication: string;
+  /** Prescription data, required only for controlled medications (Portaria 344). */
+  prescriptionNumber: string;
+  prescriberName: string;
+  prescriberCrm: string;
   concentration: string;
   pharmaceuticalForm: string;
   dose: string;
@@ -145,6 +164,9 @@ function emptyItem(): ItemState {
   return {
     key: nextItemKey,
     medication: '',
+    prescriptionNumber: '',
+    prescriberName: '',
+    prescriberCrm: '',
     concentration: '',
     pharmaceuticalForm: '',
     dose: '',
@@ -183,9 +205,14 @@ function missingInItem(item: ItemState) {
   const missing: string[] = [];
   const quantity = Number(item.quantity);
   if (!item.medication.trim()) missing.push('nome do medicamento');
+  if (findControlledSubstance(item.medication)) {
+    if (!item.prescriptionNumber.trim()) missing.push('número da receita');
+    if (!item.prescriberName.trim()) missing.push('nome do médico');
+    if (!item.prescriberCrm.trim()) missing.push('nº de identificação do médico');
+  }
   if (!item.concentration.trim()) missing.push('concentração');
   if (!item.pharmaceuticalForm) missing.push('forma farmacêutica');
-  if (!item.dose.trim()) missing.push('dose');
+  if (!item.dose.trim()) missing.push('dose prescrita');
   if (!item.route) missing.push('via de administração');
   if (!Number.isInteger(quantity) || quantity < 1) missing.push('quantidade');
   if (!item.urgency) missing.push('urgência');
@@ -211,17 +238,60 @@ function MedicationFields({
   readonly onChange: <K extends keyof ItemState>(key: K, value: ItemState[K]) => void;
 }) {
   const pastDeadline = isDeadlineInPast(item);
+  const controlled = findControlledSubstance(item.medication);
   return (
     <div className="space-y-5">
       <Field id={`${idPrefix}-medicamento`} label="Nome do medicamento">
-        <Input
+        <MedicationNameInput
           id={`${idPrefix}-medicamento`}
-          className="h-11"
           value={item.medication}
-          onChange={(event) => onChange('medication', event.target.value)}
-          autoComplete="off"
+          onChange={(value) => onChange('medication', value)}
         />
       </Field>
+
+      {controlled ? (
+        <fieldset
+          className="space-y-3 rounded-xl border-2 border-amber-400 bg-amber-50 p-4 dark:bg-amber-950/40"
+          data-testid="prescription-fields"
+        >
+          <legend className="px-1 font-semibold">Receita (medicamento controlado)</legend>
+          <p className="font-medium">
+            Lista {controlled.list} da Portaria 344: exige {controlled.prescriptionType}.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Field id={`${idPrefix}-receita-numero`} label="Número da receita">
+              <Input
+                id={`${idPrefix}-receita-numero`}
+                className="h-11 bg-background"
+                value={item.prescriptionNumber}
+                onChange={(event) => onChange('prescriptionNumber', event.target.value)}
+                autoComplete="off"
+                maxLength={80}
+              />
+            </Field>
+            <Field id={`${idPrefix}-receita-medico`} label="Nome do médico">
+              <Input
+                id={`${idPrefix}-receita-medico`}
+                className="h-11 bg-background"
+                value={item.prescriberName}
+                onChange={(event) => onChange('prescriberName', event.target.value)}
+                autoComplete="off"
+                maxLength={80}
+              />
+            </Field>
+            <Field id={`${idPrefix}-receita-crm`} label="Nº de identificação do médico">
+              <Input
+                id={`${idPrefix}-receita-crm`}
+                className="h-11 bg-background"
+                value={item.prescriberCrm}
+                onChange={(event) => onChange('prescriberCrm', event.target.value)}
+                autoComplete="off"
+                maxLength={80}
+              />
+            </Field>
+          </div>
+        </fieldset>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id={`${idPrefix}-concentracao`} label="Concentração">
@@ -253,7 +323,7 @@ function MedicationFields({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field id={`${idPrefix}-dose`} label="Dose">
+        <Field id={`${idPrefix}-dose`} label="Dose prescrita">
           <Input
             id={`${idPrefix}-dose`}
             className="h-11"
@@ -391,8 +461,8 @@ export function PrescriptionForm({
 
   const missing: string[] = [];
   if (!bed) missing.push('setor e leito');
-  if (!requester.name.trim()) missing.push('nome completo');
-  if (!requester.coren.trim()) missing.push('COREN');
+  if (!requester.name.trim()) missing.push('nome');
+  if (!requester.coren.trim()) missing.push('nº de identificação');
   items.forEach((item, index) => {
     const itemMissing = missingInItem(item);
     if (itemMissing.length > 0) {
@@ -425,6 +495,13 @@ export function PrescriptionForm({
           urgency: item.urgency ?? 'rotina',
           deadline: item.deadline ? new Date(item.deadline).getTime() : undefined,
           notes: item.notes.trim() ? item.notes : undefined,
+          prescription: findControlledSubstance(item.medication)
+            ? {
+                number: item.prescriptionNumber,
+                prescriberName: item.prescriberName,
+                prescriberCrm: item.prescriberCrm,
+              }
+            : undefined,
         })),
       });
       toast.success(
@@ -494,7 +571,7 @@ export function PrescriptionForm({
       <fieldset className="space-y-3 rounded-xl border p-4">
         <legend className="px-1 text-base font-semibold">Identificação do profissional</legend>
         <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
-          <Field id="form-solicitante" label="Nome completo">
+          <Field id="form-solicitante" label="Nome">
             <Input
               id="form-solicitante"
               className="h-11"
@@ -506,7 +583,7 @@ export function PrescriptionForm({
               maxLength={80}
             />
           </Field>
-          <Field id="form-coren" label="COREN">
+          <Field id="form-coren" label="Nº de identificação">
             <Input
               id="form-coren"
               className="h-11"
@@ -661,6 +738,91 @@ function run(action: Promise<unknown>, success: string) {
  * where each one is. Nursing confirms receipt and marks rejections as seen; the pharmacy view
  * (`mode="farmacia"`) is read-only.
  */
+/** "Confirmar recebimento" or "Reportar erro na entrega" for a medication marked as sent. */
+function SentItemActions({
+  item,
+  onConfirm,
+  onReportError,
+}: {
+  readonly item: MedicationRequest;
+  readonly onConfirm: () => void;
+  readonly onReportError: (reason: string) => void;
+}) {
+  const [isReporting, setIsReporting] = useState(false);
+  const [reason, setReason] = useState('');
+
+  if (isReporting) {
+    return (
+      <div className="basis-full space-y-3 rounded-lg border-2 border-purple-400 p-3">
+        <Label htmlFor={`erro-entrega-${item._id}`} className="text-base">
+          Qual foi o erro na entrega?
+        </Label>
+        <div className="flex flex-wrap gap-2">
+          {DELIVERY_ERROR_REASONS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => setReason(option)}
+              className={cn(
+                'rounded-full border px-3 py-1 text-sm transition-colors',
+                reason === option
+                  ? 'border-purple-500 bg-purple-50 text-purple-900 dark:bg-purple-950 dark:text-purple-100'
+                  : 'hover:bg-muted'
+              )}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+        <Textarea
+          id={`erro-entrega-${item._id}`}
+          value={reason}
+          onChange={(event) => setReason(event.target.value)}
+          placeholder="Descreva o erro"
+          rows={2}
+          maxLength={300}
+        />
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="ghost" onClick={() => setIsReporting(false)}>
+            Voltar
+          </Button>
+          <Button
+            className="bg-purple-700 text-white hover:bg-purple-800"
+            disabled={!reason.trim()}
+            onClick={() => {
+              onReportError(reason);
+              setIsReporting(false);
+              setReason('');
+            }}
+            data-testid="confirm-delivery-error"
+          >
+            <AlertTriangle className="mr-2 h-4 w-4" />
+            Enviar de volta para a farmácia
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Button onClick={onConfirm} data-testid="confirm-received">
+        <PackageCheck className="mr-2 h-4 w-4" />
+        Confirmar recebimento
+      </Button>
+      <Button
+        variant="outline"
+        className="border-2 border-purple-400 text-purple-800 hover:bg-purple-50 dark:text-purple-200 dark:hover:bg-purple-950"
+        onClick={() => setIsReporting(true)}
+        data-testid="report-delivery-error"
+      >
+        <AlertTriangle className="mr-2 h-4 w-4" />
+        Reportar erro na entrega
+      </Button>
+    </div>
+  );
+}
+
 export function TrackDeliveries({
   organizationId,
   requests,
@@ -676,6 +838,7 @@ export function TrackDeliveries({
 }) {
   const confirmReceived = useMutation(api.medications.confirmReceived);
   const acknowledgeRefusal = useMutation(api.medications.acknowledgeRefusal);
+  const reportDeliveryError = useMutation(api.medications.reportDeliveryError);
   const isNursing = mode === 'enfermagem';
 
   // A prescription is shown while any of its medications still needs attention: in progress,
@@ -711,18 +874,21 @@ export function TrackDeliveries({
                 if (!isNursing) return null;
                 if (item.status === 'enviado') {
                   return (
-                    <Button
-                      onClick={() =>
+                    <SentItemActions
+                      item={item}
+                      onConfirm={() =>
                         run(
                           confirmReceived({ organizationId, requestId: item._id }),
                           `${item.medication}: recebimento confirmado`
                         )
                       }
-                      data-testid="confirm-received"
-                    >
-                      <PackageCheck className="mr-2 h-4 w-4" />
-                      Confirmar recebimento
-                    </Button>
+                      onReportError={(reason) =>
+                        run(
+                          reportDeliveryError({ organizationId, requestId: item._id, reason }),
+                          `${item.medication}: erro reportado, voltou para o topo da fila da farmácia`
+                        )
+                      }
+                    />
                   );
                 }
                 if (isUnseenRejection(item)) {
@@ -812,6 +978,7 @@ export function PrescriptionCard({
                 {rejected ? <XCircle className="h-4 w-4 text-red-600" aria-hidden="true" /> : null}
                 <span className="font-semibold">{item.medication}</span>
                 <UrgencyBadge urgency={item.urgency} />
+                {item.refrigerated && item.status !== 'recusado' ? <RefrigeratedBadge /> : null}
                 {item.deadline ? (
                   <span className="text-sm text-muted-foreground">
                     prazo {formatDateTime(item.deadline, now)}
@@ -822,6 +989,12 @@ export function PrescriptionCard({
                 {medicationSummary(item)} · {item.quantity}{' '}
                 {item.quantity === 1 ? 'unidade' : 'unidades'}
               </p>
+              <DeliveryErrorNotice request={item} now={now} />
+              {acceptedByLabel(item) ? (
+                <p className="text-sm text-muted-foreground">
+                  Aceito na farmácia por {acceptedByLabel(item)}
+                </p>
+              ) : null}
               {rejected ? (
                 <p className="font-semibold text-red-800 dark:text-red-200">
                   Rejeitado pela farmácia · Justificativa: {item.refusalReason ?? 'não informada'}

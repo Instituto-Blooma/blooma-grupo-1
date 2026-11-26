@@ -88,6 +88,8 @@ const schema = defineSchema({
     itemCount: v.optional(v.number()),
     // Who made the request (identification field on the form).
     requesterName: v.optional(v.string()),
+    // Hospital identification number of the professional (was the COREN; name kept so older
+    // requests still load). Same for acceptedByCrf and prescriberCrm below.
     requesterCoren: v.optional(v.string()),
     sectorId: v.id('sectors'),
     bedId: v.id('beds'),
@@ -104,6 +106,12 @@ const schema = defineSchema({
     // 0 = urgente, 1 = prioritario, 2 = rotina; drives the pharmacy queue order.
     urgencyRank: v.number(),
     notes: v.optional(v.string()),
+    // Controlled medication (Portaria 344): list it belongs to ("B1", "C1"...) and the
+    // prescription data nursing must fill in before the request is accepted.
+    controlledList: v.optional(v.string()),
+    prescriptionNumber: v.optional(v.string()),
+    prescriberName: v.optional(v.string()),
+    prescriberCrm: v.optional(v.string()),
     // Optional "data e horário limite" set by nursing (ms since epoch).
     deadline: v.optional(v.number()),
     status: v.union(
@@ -120,6 +128,25 @@ const schema = defineSchema({
     // Device (browser) that accepted the request; only it can mark it as sent. Other devices
     // see the request as "Solicitação em andamento".
     acceptedByDevice: v.optional(v.string()),
+    // Pharmacy professional who accepted it (asked when tapping "Aceitar").
+    acceptedByName: v.optional(v.string()),
+    // Marked by the pharmacy when sending: nursing must keep it in the refrigerator.
+    refrigerated: v.optional(v.boolean()),
+    // Delivery problems reported by nursing ("Reportar erro na entrega"). Each one sends the
+    // medication back to the top of the pharmacy queue (needsRedelivery) and stays in the history.
+    needsRedelivery: v.optional(v.boolean()),
+    deliveryErrors: v.optional(
+      v.array(
+        v.object({
+          reason: v.string(),
+          reportedAt: v.number(),
+          // The delivery that went wrong, so the history keeps it after the medication restarts.
+          sentAt: v.optional(v.number()),
+          acceptedByName: v.optional(v.string()),
+        })
+      )
+    ),
+    acceptedByCrf: v.optional(v.string()),
     createdBy: v.id('users'),
     createdAt: v.number(),
     updatedAt: v.number(),

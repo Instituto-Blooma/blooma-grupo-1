@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query, type MutationCtx } from './_generated/server';
 import { MAX_BEDS_PER_SECTOR, MAX_SECTORS, isActive } from './hospitalStructure';
+import { findControlledSubstance } from './lib/controlledSubstances';
 import { getHospitalAccess, requireHospitalAccess } from './lib/hospitalAccess';
 import {
   MAX_DEVICE_ID_LENGTH,
@@ -61,6 +62,12 @@ export const listSectorsWithBeds = query({
  * requests without a deadline last (oldest first among them).
  */
 function compareQueueOrder(left: Doc<'medicationRequests'>, right: Doc<'medicationRequests'>) {
+  // A reported delivery error goes before everything else: the patient already waited once.
+  const leftRedo = left.needsRedelivery === true ? 0 : 1;
+  const rightRedo = right.needsRedelivery === true ? 0 : 1;
+  if (leftRedo !== rightRedo) {
+    return leftRedo - rightRedo;
+  }
   if (left.urgencyRank !== right.urgencyRank) {
     return left.urgencyRank - right.urgencyRank;
   }
@@ -124,6 +131,15 @@ export const listRequests = query({
       refusalReason: request.refusalReason ?? null,
       refusalAcknowledgedAt: request.refusalAcknowledgedAt ?? null,
       acceptedByDevice: request.acceptedByDevice ?? null,
+      acceptedByName: request.acceptedByName ?? null,
+      refrigerated: request.refrigerated === true,
+      needsRedelivery: request.needsRedelivery === true,
+      deliveryErrors: request.deliveryErrors ?? [],
+      acceptedByCrf: request.acceptedByCrf ?? null,
+      controlledList: request.controlledList ?? null,
+      prescriptionNumber: request.prescriptionNumber ?? null,
+      prescriberName: request.prescriberName ?? null,
+      prescriberCrm: request.prescriberCrm ?? null,
       createdAt: request.createdAt,
       updatedAt: request.updatedAt,
       separationStartedAt: request.separationStartedAt ?? null,
@@ -157,6 +173,10 @@ const itemValidator = v.object({
   urgency: urgencyValidator,
   notes: v.optional(v.string()),
   deadline: v.optional(v.number()),
+  // Only used (and then required) when the medication is controlled.
+  prescription: v.optional(
+    v.object({ number: v.string(), prescriberName: v.string(), prescriberCrm: v.string() })
+  ),
 });
 
 function cleanItem(item: typeof itemValidator.type, position: number, total: number) {
@@ -175,7 +195,7 @@ function cleanItem(item: typeof itemValidator.type, position: number, total: num
     throw new Error(`Forma farmacêutica inválida${label}`);
   }
   if (!dose) {
-    throw new Error(`Informe a dose${label}`);
+    throw new Error(`Informe a dose prescrita${label}`);
   }
   if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 999) {
     throw new Error(`A quantidade deve ser um número inteiro entre 1 e 999${label}`);
@@ -186,13 +206,41 @@ function cleanItem(item: typeof itemValidator.type, position: number, total: num
   if (item.deadline !== undefined && !Number.isFinite(item.deadline)) {
     throw new Error(`Data e horário limite inválidos${label}`);
   }
-  return { ...item, medication, concentration, dose, notes: notes ? notes : undefined };
+  const controlled = findControlledSubstance(medication);
+  const prescription = controlled
+    ? {
+        prescriptionNumber: cleanIdentification(
+          item.prescription?.number ?? '',
+          'Número da receita',
+          `${medication} é controlado (${controlled.prescriptionType}): informe o número da receita${label}`
+        ),
+        prescriberName: cleanIdentification(
+          item.prescription?.prescriberName ?? '',
+          'Nome do médico',
+          `Informe o nome do médico que prescreveu${label}`
+        ),
+        prescriberCrm: cleanIdentification(
+          item.prescription?.prescriberCrm ?? '',
+          'Nº de identificação do médico',
+          `Informe o número de identificação do médico${label}`
+        ),
+      }
+    : {};
+  return {
+    ...item,
+    medication,
+    concentration,
+    dose,
+    notes: notes ? notes : undefined,
+    controlledList: controlled?.list,
+    ...prescription,
+  };
 }
 
-function cleanIdentification(value: string, label: 'Nome completo' | 'COREN') {
+function cleanIdentification(value: string, label: string, missingMessage: string) {
   const trimmed = value.replace(/\s+/g, ' ').trim();
   if (!trimmed) {
-    throw new Error(label === 'COREN' ? 'Informe o COREN' : 'Informe o nome completo');
+    throw new Error(missingMessage);
   }
   if (trimmed.length > MAX_IDENTIFICATION_LENGTH) {
     throw new Error(`${label} pode ter até ${MAX_IDENTIFICATION_LENGTH} caracteres`);
@@ -215,8 +263,12 @@ export const createPrescription = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireHospitalAccess(ctx, args.organizationId);
-    const requesterName = cleanIdentification(args.requesterName, 'Nome completo');
-    const requesterCoren = cleanIdentification(args.requesterCoren, 'COREN');
+    const requesterName = cleanIdentification(args.requesterName, 'Nome', 'Informe o nome');
+    const requesterCoren = cleanIdentification(
+      args.requesterCoren,
+      'Nº de identificação',
+      'Informe o número de identificação'
+    );
     if (args.items.length === 0) {
       throw new Error('Adicione pelo menos um medicamento');
     }
@@ -256,6 +308,10 @@ export const createPrescription = mutation({
         urgencyRank: URGENCY_RANK[item.urgency],
         notes: item.notes,
         deadline: item.deadline,
+        controlledList: item.controlledList,
+        prescriptionNumber: item.prescriptionNumber,
+        prescriberName: item.prescriberName,
+        prescriberCrm: item.prescriberCrm,
         status: 'solicitado',
         createdBy: userId,
         createdAt: now,
@@ -320,9 +376,20 @@ async function prescriptionItems(ctx: MutationCtx, request: Doc<'medicationReque
  * same time, Convex runs the mutations one after the other and the second one finds it held.
  */
 export const acceptRequest = mutation({
-  args: { ...transitionArgs, deviceId: v.string() },
-  handler: async (ctx, { organizationId, requestId, deviceId }) => {
+  args: {
+    ...transitionArgs,
+    deviceId: v.string(),
+    pharmacistName: v.string(),
+    pharmacistCrf: v.string(),
+  },
+  handler: async (ctx, { organizationId, requestId, deviceId, pharmacistName, pharmacistCrf }) => {
     const device = requireDeviceId(deviceId);
+    const acceptedByName = cleanIdentification(pharmacistName, 'Nome', 'Informe o nome');
+    const acceptedByCrf = cleanIdentification(
+      pharmacistCrf,
+      'Nº de identificação',
+      'Informe o número de identificação'
+    );
     const request = await loadRequestForTransition(
       ctx,
       organizationId,
@@ -344,6 +411,8 @@ export const acceptRequest = mutation({
     await ctx.db.patch('medicationRequests', request._id, {
       status: 'em_separacao',
       acceptedByDevice: device,
+      acceptedByName,
+      acceptedByCrf,
       separationStartedAt: now,
       updatedAt: now,
     });
@@ -353,8 +422,8 @@ export const acceptRequest = mutation({
 
 /** Farmácia (only the device that accepted): Em preparação → Enviado. */
 export const markSent = mutation({
-  args: { ...transitionArgs, deviceId: v.string() },
-  handler: async (ctx, { organizationId, requestId, deviceId }) => {
+  args: { ...transitionArgs, deviceId: v.string(), refrigerated: v.optional(v.boolean()) },
+  handler: async (ctx, { organizationId, requestId, deviceId, refrigerated }) => {
     const device = requireDeviceId(deviceId);
     const request = await loadRequestForTransition(
       ctx,
@@ -370,6 +439,62 @@ export const markSent = mutation({
     await ctx.db.patch('medicationRequests', requestId, {
       status: 'enviado',
       sentAt: now,
+      refrigerated: refrigerated === true,
+      needsRedelivery: false,
+      updatedAt: now,
+    });
+    return null;
+  },
+});
+
+const MAX_DELIVERY_ERRORS = 20;
+const MAX_REASON_LENGTH = 300;
+
+/**
+ * Enfermagem: "Reportar erro na entrega" on a medication marked as sent. It goes back to
+ * "Solicitado" at the top of the pharmacy queue (any pharmacy device can accept it again) and the
+ * error is kept for the history.
+ */
+export const reportDeliveryError = mutation({
+  args: { ...transitionArgs, reason: v.string() },
+  handler: async (ctx, { organizationId, requestId, reason }) => {
+    const request = await loadRequestForTransition(
+      ctx,
+      organizationId,
+      requestId,
+      ['enviado'],
+      'Só é possível reportar erro em um medicamento "Enviado"'
+    );
+    const trimmed = reason.trim();
+    if (!trimmed) {
+      throw new Error('Descreva o erro na entrega');
+    }
+    if (trimmed.length > MAX_REASON_LENGTH) {
+      throw new Error(`A descrição pode ter até ${MAX_REASON_LENGTH} caracteres`);
+    }
+    const errors = request.deliveryErrors ?? [];
+    if (errors.length >= MAX_DELIVERY_ERRORS) {
+      throw new Error('Este medicamento já tem erros demais registrados. Faça um novo pedido.');
+    }
+    const now = Date.now();
+    await ctx.db.patch('medicationRequests', requestId, {
+      status: 'solicitado',
+      needsRedelivery: true,
+      deliveryErrors: [
+        ...errors,
+        {
+          reason: trimmed,
+          reportedAt: now,
+          sentAt: request.sentAt,
+          acceptedByName: request.acceptedByName,
+        },
+      ],
+      acceptedByDevice: undefined,
+      acceptedByName: undefined,
+      acceptedByCrf: undefined,
+      separationStartedAt: undefined,
+      sentAt: undefined,
+      refrigerated: undefined,
       updatedAt: now,
     });
     return null;

@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { ArrowLeftRight, History, Home, Pill, Stethoscope, Truck } from 'lucide-react';
 import { isFinishedStatus } from '../../../../convex/lib/medicationOptions';
 import { MedBridgeWordmark } from '@/components/medbridge-brand';
+import { Hint } from '@/components/hint';
 import { Button } from '@/components/ui/button';
 import { PROFILE_LABEL, type HospitalProfile } from '@/lib/hospital-profile';
 import { RequestHistory } from './history';
@@ -107,40 +108,54 @@ export function ProfileArea({
           </div>
           <div className="flex flex-wrap gap-2">
             {screen !== mainScreen ? (
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => setScreen(mainScreen)}
-                data-testid="go-main"
+              <Hint
+                label={
+                  isNursing
+                    ? 'Voltar ao painel da enfermagem.'
+                    : 'Voltar à fila de solicitações da farmácia.'
+                }
               >
-                <Home className="mr-2 h-4 w-4" />
-                {isNursing ? 'Painel' : 'Solicitações'}
-              </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => setScreen(mainScreen)}
+                  data-testid="go-main"
+                >
+                  <Home className="mr-2 h-4 w-4" />
+                  {isNursing ? 'Painel' : 'Solicitações'}
+                </Button>
+              </Hint>
             ) : null}
             {!isNursing ? (
-              <Button
-                variant={screen === 'acompanhar' ? 'default' : 'outline'}
-                size="lg"
-                onClick={() => setScreen('acompanhar')}
-                data-testid="go-tracking"
-              >
-                <Truck className="mr-2 h-4 w-4" />
-                Acompanhar entregas
-              </Button>
+              <Hint label="Ver em que etapa está cada medicamento já pedido.">
+                <Button
+                  variant={screen === 'acompanhar' ? 'default' : 'outline'}
+                  size="lg"
+                  onClick={() => setScreen('acompanhar')}
+                  data-testid="go-tracking"
+                >
+                  <Truck className="mr-2 h-4 w-4" />
+                  Acompanhar entregas
+                </Button>
+              </Hint>
             ) : null}
-            <Button
-              variant={screen === 'historico' ? 'default' : 'outline'}
-              size="lg"
-              onClick={() => setScreen('historico')}
-              data-testid="go-history"
-            >
-              <History className="mr-2 h-4 w-4" />
-              Histórico
-            </Button>
-            <Button variant="outline" size="lg" onClick={onExit} data-testid="switch-profile">
-              <ArrowLeftRight className="mr-2 h-4 w-4" />
-              Trocar perfil
-            </Button>
+            <Hint label="Pedidos entregues e rejeitados, com o tempo de cada etapa.">
+              <Button
+                variant={screen === 'historico' ? 'default' : 'outline'}
+                size="lg"
+                onClick={() => setScreen('historico')}
+                data-testid="go-history"
+              >
+                <History className="mr-2 h-4 w-4" />
+                Histórico
+              </Button>
+            </Hint>
+            <Hint label="Voltar à tela inicial para escolher Enfermagem ou Farmácia.">
+              <Button variant="outline" size="lg" onClick={onExit} data-testid="switch-profile">
+                <ArrowLeftRight className="mr-2 h-4 w-4" />
+                Trocar perfil
+              </Button>
+            </Hint>
           </div>
         </div>
         <BedFilter sectors={sectors ?? []} value={filter} onChange={setFilter} />

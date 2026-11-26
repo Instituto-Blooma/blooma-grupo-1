@@ -55,6 +55,15 @@ export const REFUSAL_REASONS = [
   'Dose fora do padrão',
   'Via de administração incorreta',
   'Solicitação incompleta',
+  'Receita inadequada',
+] as const;
+
+export const DELIVERY_ERROR_REASONS = [
+  'Medicamento errado',
+  'Dose ou concentração errada',
+  'Quantidade errada',
+  'Medicamento danificado ou vencido',
+  'Não chegou ao leito',
 ] as const;
 
 /** Device ids are random UUIDs generated in the browser. */

@@ -21,6 +21,7 @@ import type * as http from "../http.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_collabAccess from "../lib/collabAccess.js";
 import type * as lib_collabIds from "../lib/collabIds.js";
+import type * as lib_controlledSubstances from "../lib/controlledSubstances.js";
 import type * as lib_forms from "../lib/forms.js";
 import type * as lib_googleProvider from "../lib/googleProvider.js";
 import type * as lib_guestQuery from "../lib/guestQuery.js";
@@ -61,6 +62,7 @@ declare const fullApi: ApiFromModules<{
   "lib/auth": typeof lib_auth;
   "lib/collabAccess": typeof lib_collabAccess;
   "lib/collabIds": typeof lib_collabIds;
+  "lib/controlledSubstances": typeof lib_controlledSubstances;
   "lib/forms": typeof lib_forms;
   "lib/googleProvider": typeof lib_googleProvider;
   "lib/guestQuery": typeof lib_guestQuery;

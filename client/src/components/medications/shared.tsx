@@ -3,11 +3,16 @@ import { useQuery } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
 import {
+  PRESCRIPTION_TYPE,
+  type ControlledList,
+} from '../../../../convex/lib/controlledSubstances';
+import {
   STATUS_LABEL,
   URGENCY_LABEL,
   type RequestStatus,
   type Urgency,
 } from '../../../../convex/lib/medicationOptions';
+import { AlertTriangle, Snowflake } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -40,6 +45,18 @@ export type MedicationRequest = {
   concentration: string | null;
   pharmaceuticalForm: string | null;
   acceptedByDevice: string | null;
+  acceptedByName: string | null;
+  /** Pharmacy marked it as refrigerated when sending: keep it in the refrigerator. */
+  refrigerated: boolean;
+  /** Back in the pharmacy queue after nursing reported a delivery error. */
+  needsRedelivery: boolean;
+  deliveryErrors: ReadonlyArray<DeliveryError>;
+  acceptedByCrf: string | null;
+  /** Portaria 344 list ("B1", "C1"...) when the medication is controlled. */
+  controlledList: string | null;
+  prescriptionNumber: string | null;
+  prescriberName: string | null;
+  prescriberCrm: string | null;
   refusalAcknowledgedAt: number | null;
   quantity: number;
   dose: string;
@@ -85,6 +102,51 @@ export const STATUS_STYLE: Record<RequestStatus, string> = {
   recebido: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200',
   recusado: 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200',
 };
+
+export type DeliveryError = {
+  reason: string;
+  reportedAt: number;
+  sentAt?: number;
+  acceptedByName?: string;
+};
+
+export function RefrigeratedBadge() {
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-md border border-sky-300 bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-900 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-100"
+      data-testid="refrigerated-badge"
+    >
+      <Snowflake className="h-3.5 w-3.5" aria-hidden="true" />
+      Refrigerado: guardar na geladeira
+    </span>
+  );
+}
+
+/** Purple notice for a medication that came back to the pharmacy after a delivery error. */
+export function DeliveryErrorNotice({
+  request,
+  now,
+}: {
+  readonly request: MedicationRequest;
+  readonly now: number;
+}) {
+  const last = request.deliveryErrors.at(-1);
+  if (!request.needsRedelivery || !last) {
+    return null;
+  }
+  return (
+    <p
+      className="flex items-start gap-2 rounded-lg border-2 border-purple-400 bg-purple-50 p-2 text-sm font-medium text-purple-900 dark:bg-purple-950/50 dark:text-purple-100"
+      data-testid="delivery-error-notice"
+    >
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+      <span>
+        Erro na entrega reportado pela enfermagem {formatDateTime(last.reportedAt, now)}:{' '}
+        {last.reason}
+      </span>
+    </p>
+  );
+}
 
 export function UrgencyBadge({ urgency }: { readonly urgency: Urgency }) {
   return (
@@ -135,7 +197,12 @@ export function medicationCountLabel(count: number) {
   return count === 1 ? '1 medicamento' : `${count} medicamentos`;
 }
 
-/** "Ana Paula Ribeiro · COREN-SP 245.871", or null for requests made before identification. */
+/** Hospital identification number as shown: "nº 10234" (older entries keep their own text). */
+export function identificationText(value: string) {
+  return /^\d/.test(value) ? `nº ${value}` : value;
+}
+
+/** "Ana Paula Ribeiro · nº 10234" (hospital identification number), or null for old requests. */
 export function requesterLabel(
   request: Pick<MedicationRequest, 'requesterName' | 'requesterCoren'>
 ) {
@@ -143,7 +210,7 @@ export function requesterLabel(
     return null;
   }
   return request.requesterCoren
-    ? `${request.requesterName} · ${request.requesterCoren}`
+    ? `${request.requesterName} · ${identificationText(request.requesterCoren)}`
     : request.requesterName;
 }
 
@@ -196,13 +263,42 @@ export function groupPrescriptions(requests: ReadonlyArray<MedicationRequest>) {
 }
 
 /** Every field the nursing team filled in, as label/value rows (the "ficha"). */
+/** Pharmacy professional who accepted the medication: "Nome · nº 20871". */
+export function acceptedByLabel(
+  request: Pick<MedicationRequest, 'acceptedByName' | 'acceptedByCrf'>
+) {
+  if (!request.acceptedByName) {
+    return null;
+  }
+  return request.acceptedByCrf
+    ? `${request.acceptedByName} · ${identificationText(request.acceptedByCrf)}`
+    : request.acceptedByName;
+}
+
+/** Prescription of a controlled medication: "Notificação de Receita B (azul) nº 123 · Dr. X · nº 30417". */
+export function prescriptionLabel(request: MedicationRequest) {
+  if (!request.controlledList) {
+    return null;
+  }
+  const type = PRESCRIPTION_TYPE[request.controlledList as ControlledList] ?? 'Receita';
+  return [
+    `${type} nº ${request.prescriptionNumber ?? '—'}`,
+    request.prescriberName,
+    request.prescriberCrm ? identificationText(request.prescriberCrm) : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+}
+
 export function requestFields(request: MedicationRequest, now: number) {
+  const prescription = prescriptionLabel(request);
+  const acceptedBy = acceptedByLabel(request);
   return [
     { label: 'Setor e leito', value: formatLocation(request.sectorName, request.bedLabel) },
     { label: 'Medicamento', value: request.medication },
     { label: 'Concentração', value: request.concentration ?? '—' },
     { label: 'Forma farmacêutica', value: request.pharmaceuticalForm ?? '—' },
-    { label: 'Dose', value: request.dose },
+    { label: 'Dose prescrita', value: request.dose },
     { label: 'Via de administração', value: request.route },
     {
       label: 'Quantidade',
@@ -213,7 +309,12 @@ export function requestFields(request: MedicationRequest, now: number) {
       value: request.deadline ? formatDateTime(request.deadline, now) : 'Sem prazo',
     },
     { label: 'Observação', value: request.notes ?? '—' },
+    ...(prescription ? [{ label: 'Receita (controlado)', value: prescription }] : []),
+    ...(request.refrigerated
+      ? [{ label: 'Conservação', value: 'Refrigerado: guardar na geladeira' }]
+      : []),
     { label: 'Solicitado por', value: requesterLabel(request) ?? 'Não informado' },
+    ...(acceptedBy ? [{ label: 'Aceito na farmácia por', value: acceptedBy }] : []),
   ];
 }
 

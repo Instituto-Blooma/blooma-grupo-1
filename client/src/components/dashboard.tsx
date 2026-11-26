@@ -3,7 +3,8 @@ import { Link } from '@tanstack/react-router';
 import { useAuthActions } from '@convex-dev/auth/react';
 import { usePermission, useTenantsData } from '@djpanda/convex-tenants/react';
 import { useConvexAuth, useQuery } from 'convex/react';
-import { LogOut } from 'lucide-react';
+import { BookOpen, LogOut } from 'lucide-react';
+import { Hint } from '@/components/hint';
 import { MedBridgeWordmark } from '@/components/medbridge-brand';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -92,12 +93,20 @@ export function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Hint label="Em breve: consulta rápida de informações sobre os medicamentos.">
+              <Button variant="ghost" size="sm" data-testid="nav-medication-guide">
+                <BookOpen className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                Guia de medicamentos
+              </Button>
+            </Hint>
             {canManageSettings.allowed ? (
-              <Link to="/settings/setores">
-                <Button variant="ghost" size="sm" data-testid="nav-settings-members">
-                  Configurações
-                </Button>
-              </Link>
+              <Hint label="Cadastrar setores e leitos e gerenciar os membros do hospital.">
+                <Link to="/settings/setores">
+                  <Button variant="ghost" size="sm" data-testid="nav-settings-members">
+                    Configurações
+                  </Button>
+                </Link>
+              </Hint>
             ) : null}
             {isPlatformAdmin ? (
               <Link to="/admin">
@@ -108,18 +117,20 @@ export function Dashboard() {
             ) : null}
             <ThemeToggle />
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative h-9 w-9 rounded-full"
-                  data-testid="button-user-menu"
-                >
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage src={currentUser?.image ?? undefined} />
-                    <AvatarFallback>{avatarFallback}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
+              <Hint label="Ver a conta do hospital e sair.">
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-9 w-9 rounded-full"
+                    data-testid="button-user-menu"
+                  >
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={currentUser?.image ?? undefined} />
+                      <AvatarFallback>{avatarFallback}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+              </Hint>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">

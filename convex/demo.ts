@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import type { Id } from './_generated/dataModel';
 import { internalMutation, type MutationCtx } from './_generated/server';
 import { PLATFORM_ADMIN_EMAIL, ensureOrganization, seedOrgMember } from './testing/e2e';
+import { findControlledSubstance } from './lib/controlledSubstances';
 import { URGENCY_RANK, type RequestStatus, type Urgency } from './lib/medicationOptions';
 import { ensureUserByEmail } from './lib/users';
 
@@ -30,13 +31,22 @@ type DemoRequest = {
   deadlineInMinutes?: number;
   /** Items with the same key form one prescription with several medications (same bed). */
   prescription?: string;
+  /** Sent marked as "Medicamento refrigerado". */
+  refrigerated?: boolean;
+  /** Nursing reported this delivery error: the item is back at the top of the pharmacy queue. */
+  deliveryError?: string;
 };
 
 /** Fictional nursing professionals used as the requester of demo prescriptions. */
+const DEMO_PHARMACISTS = [
+  { name: 'Fernanda Souza Martins', crf: '20871' },
+  { name: 'Ricardo Alves Pereira', crf: '20944' },
+];
+
 const DEMO_NURSES = [
-  { name: 'Ana Paula Ribeiro', coren: 'COREN-SP 245.871' },
-  { name: 'Carlos Eduardo Lima', coren: 'COREN-SP 198.334' },
-  { name: 'Juliana Mendes Costa', coren: 'COREN-SP 312.509' },
+  { name: 'Ana Paula Ribeiro', coren: '10234' },
+  { name: 'Carlos Eduardo Lima', coren: '10587' },
+  { name: 'Juliana Mendes Costa', coren: '11042' },
 ] as const;
 
 type DemoHospital = {
@@ -62,12 +72,26 @@ const DEMO_DETAILS: Record<string, { form: string; dose: string }> = {
   'Sulfato ferroso': { form: 'Comprimido', dose: '1 comprimido' },
   Midazolam: { form: 'Injetável', dose: '3 ml' },
   Pantoprazol: { form: 'Pó para reconstituição', dose: '1 frasco-ampola' },
+  'Insulina regular': { form: 'Injetável', dose: '10 UI' },
 };
 
 /** Stands for a second pharmacy device, so the demo shows a request locked as "em andamento". */
 const OTHER_PHARMACY_DEVICE = 'demo-outro-aparelho-da-farmacia';
 
 export const DEMO_HOSPITALS: ReadonlyArray<DemoHospital> = [
+  // Clean hospital for the pitch: sectors and beds ready, no medication history.
+  {
+    name: 'Hospital Blooma',
+    slug: 'hospital-blooma',
+    accountEmail: 'hospital.blooma@example.com',
+    sectors: [
+      { name: 'UTI Adulto', beds: 6 },
+      { name: 'Pronto-Socorro', beds: 5 },
+      { name: 'Enfermaria Clínica', beds: 8 },
+      { name: 'Pediatria', beds: 4 },
+    ],
+    requests: [],
+  },
   {
     name: 'Hospital Esperança',
     slug: 'hospital-esperanca',
@@ -140,6 +164,19 @@ export const DEMO_HOSPITALS: ReadonlyArray<DemoHospital> = [
         status: 'solicitado',
         minutesAgo: 22,
         deadlineInMinutes: 90,
+        deliveryError: 'Dose ou concentração errada',
+      },
+      {
+        sector: 'Enfermaria Clínica',
+        bed: 'Leito 01',
+        medication: 'Insulina regular',
+        quantity: 1,
+        dose: '100 UI/ml',
+        route: 'Subcutânea',
+        urgency: 'prioritario',
+        status: 'enviado',
+        minutesAgo: 16,
+        refrigerated: true,
       },
       {
         sector: 'UTI Adulto',
@@ -341,6 +378,10 @@ async function seedHospitalStructure(
       );
     };
     const details = DEMO_DETAILS[request.medication] ?? { form: 'Comprimido', dose: '1 unidade' };
+    const controlled = findControlledSubstance(request.medication);
+    const pharmacist = reached('em_separacao')
+      ? DEMO_PHARMACISTS[number % DEMO_PHARMACISTS.length]
+      : undefined;
     await ctx.db.insert('medicationRequests', {
       organizationId,
       number,
@@ -356,6 +397,26 @@ async function seedHospitalStructure(
       quantity: request.quantity,
       dose: details.dose,
       acceptedByDevice: reached('em_separacao') ? OTHER_PHARMACY_DEVICE : undefined,
+      acceptedByName: pharmacist?.name,
+      acceptedByCrf: pharmacist?.crf,
+      controlledList: controlled?.list,
+      prescriptionNumber: controlled
+        ? `${controlled.list}-${String(number).padStart(6, '0')}`
+        : undefined,
+      prescriberName: controlled ? 'Dra. Marina Duarte Alves' : undefined,
+      prescriberCrm: controlled ? '30417' : undefined,
+      refrigerated: request.refrigerated,
+      needsRedelivery: request.deliveryError ? true : undefined,
+      deliveryErrors: request.deliveryError
+        ? [
+            {
+              reason: request.deliveryError,
+              sentAt: createdAt + 2 * step,
+              reportedAt: createdAt + 3 * step,
+              acceptedByName: DEMO_PHARMACISTS[0]?.name,
+            },
+          ]
+        : undefined,
       route: request.route,
       urgency: request.urgency,
       urgencyRank: URGENCY_RANK[request.urgency],

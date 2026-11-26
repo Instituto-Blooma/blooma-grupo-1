@@ -10,15 +10,24 @@ import {
   matchesBedFilter,
   medicationSummary,
   itemTitle,
+  acceptedByLabel,
+  prescriptionLabel,
   requesterLabel,
   type BedFilterValue,
   type MedicationRequest,
 } from './shared';
 
-type TimelineStep = { label: string; at: number };
+type TimelineStep = { label: string; at: number; kind?: 'erro' | 'rejeitado' };
 
 function timelineFor(request: MedicationRequest): TimelineStep[] {
   const steps: TimelineStep[] = [{ label: 'Solicitado', at: request.createdAt }];
+  // Earlier deliveries that nursing reported as wrong, before the current attempt.
+  for (const error of request.deliveryErrors) {
+    if (error.sentAt) {
+      steps.push({ label: 'Enviado', at: error.sentAt });
+    }
+    steps.push({ label: 'Erro na entrega', at: error.reportedAt, kind: 'erro' });
+  }
   if (request.separationStartedAt) {
     steps.push({ label: 'Aceito (em preparação)', at: request.separationStartedAt });
   }
@@ -29,9 +38,9 @@ function timelineFor(request: MedicationRequest): TimelineStep[] {
     steps.push({ label: 'Recebido no leito', at: request.receivedAt });
   }
   if (request.refusedAt) {
-    steps.push({ label: 'Rejeitado', at: request.refusedAt });
+    steps.push({ label: 'Rejeitado', at: request.refusedAt, kind: 'rejeitado' });
   }
-  return steps;
+  return steps.toSorted((left, right) => left.at - right.at);
 }
 
 function HistoryItem({
@@ -73,9 +82,8 @@ function HistoryItem({
       <ol className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:gap-0">
         {steps.map((step, index) => {
           const previous = steps[index - 1];
-          const isRefusal = step.label === 'Rejeitado';
           return (
-            <li key={step.label} className="flex items-start gap-2 sm:items-center">
+            <li key={`${step.label}-${step.at}`} className="flex items-start gap-2 sm:items-center">
               {index > 0 ? (
                 <span className="hidden text-xs text-muted-foreground sm:mx-2 sm:inline">
                   {previous ? `— ${formatDuration(previous.at, step.at)} →` : '→'}
@@ -84,7 +92,11 @@ function HistoryItem({
               <span
                 className={cn(
                   'mt-1 h-2.5 w-2.5 shrink-0 rounded-full sm:mt-0',
-                  isRefusal ? 'bg-red-500' : 'bg-primary'
+                  step.kind === 'rejeitado'
+                    ? 'bg-red-500'
+                    : step.kind === 'erro'
+                      ? 'bg-purple-500'
+                      : 'bg-primary'
                 )}
               />
               <span className="text-sm">
@@ -106,6 +118,28 @@ function HistoryItem({
           Solicitado por {requesterLabel(request)}
         </p>
       ) : null}
+      {acceptedByLabel(request) ? (
+        <p className="mt-1 text-sm text-muted-foreground">
+          Aceito na farmácia por {acceptedByLabel(request)}
+        </p>
+      ) : null}
+      {prescriptionLabel(request) ? (
+        <p className="mt-1 text-sm text-muted-foreground">
+          Receita (controlado): {prescriptionLabel(request)}
+        </p>
+      ) : null}
+      {request.refrigerated ? (
+        <p className="mt-1 text-sm text-muted-foreground">Refrigerado: guardar na geladeira</p>
+      ) : null}
+      {request.deliveryErrors.map((error) => (
+        <p
+          key={error.reportedAt}
+          className="mt-1 text-sm font-medium text-purple-800 dark:text-purple-200"
+        >
+          Erro na entrega reportado {formatDateTime(error.reportedAt, now)}: {error.reason}
+          {error.acceptedByName ? ` (entrega preparada por ${error.acceptedByName})` : ''}
+        </p>
+      ))}
       {request.notes ? (
         <p className="mt-1 text-sm text-muted-foreground">Observação: {request.notes}</p>
       ) : null}
